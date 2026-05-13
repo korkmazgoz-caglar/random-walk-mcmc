@@ -1,6 +1,6 @@
 import numpy as np
 
-def random_walk_metropolis_hastings(
+def random_walk_metropolis_hastings_1d(
     target_log_pdf,
     x0: int,
     n_samples: int,
