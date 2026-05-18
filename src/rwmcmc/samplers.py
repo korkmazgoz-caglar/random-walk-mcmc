@@ -11,7 +11,7 @@ def random_walk_metropolis_hastings_1d(
 
 ) -> np.ndarray:
 
-    """Docstring starts here:
+    """
     The random walk Metropolis-Hastings algorithm is a Markov Chain Monte Carlo (MCMC) method used to sample from a target distribution when direct sampling is difficult. It constructs a Markov chain that has the target distribution as its stationary distribution. The algorithm iteratively proposes new samples based on the current sample and accepts or rejects them based on the acceptance ratio, which is calculated using the target distribution's log probability density function. The step size parameter controls the scale of the random walk, and the random number generator (rng) can be used to ensure reproducibility of the sampling process. The function returns an array of samples drawn from the target distribution and a boolean array indicating which proposals were accepted. This implementation assumes a symmetric proposal distribution, which simplifies the acceptance ratio calculation.
     """
     if rng is None:
@@ -49,14 +49,16 @@ def random_walk_metropolis_hastings(
     target_log_pdf,
     x0: ArrayLike,
     n_samples: int,
-    step_size: float = 0.5,
+    step_size: float | ArrayLike = 1.0,
     rng: np.random.Generator | None = None,
 
 
 ) -> tuple[np.ndarray, np.ndarray]:
 
-    """Docstring starts here:
-    The random walk Metropolis-Hastings algorithm is a Markov Chain Monte Carlo (MCMC) method used to sample from a target distribution when direct sampling is difficult. It constructs a Markov chain that has the target distribution as its stationary distribution. The algorithm iteratively proposes new samples based on the current sample and accepts or rejects them based on the acceptance ratio, which is calculated using the target distribution's log probability density function. The step size parameter controls the scale of the random walk, and the random number generator (rng) can be used to ensure reproducibility of the sampling process. The function returns an array of samples drawn from the target distribution and a boolean array indicating which proposals were accepted. This implementation assumes a symmetric proposal distribution, which simplifies the acceptance ratio calculation.
+    """
+    The random walk Metropolis-Hastings algorithm is a Markov Chain Monte Carlo (MCMC) method used to sample from a target distribution when direct sampling is difficult. It constructs a Markov chain that has the target distribution as its stationary distribution. The algorithm iteratively proposes new samples based on the current sample and accepts or rejects them based on the acceptance ratio, which is calculated using the target distribution's log probability density function.
+    
+    The step size parameter can be scalar or array and controls the scale of the random walk, and the random number generator (rng) can be used to ensure reproducibility of the sampling process. The function returns an array of samples drawn from the target distribution and a boolean array indicating which proposals were accepted. This implementation assumes a symmetric proposal distribution, which simplifies the acceptance ratio calculation.
     """
 
     if rng is None:
