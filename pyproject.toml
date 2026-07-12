@@ -5,11 +5,29 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "rwmcmc"
 version = "0.1.0"
-description = "Random Walk Metropolis-Hastings sampler and benchmarks"
+description = "Lightweight Random-Walk Metropolis-Hastings sampler with diagnostics and visualization"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Enes Caglar Korkmazgoz" }]
+authors = [{ name = "Çağlar Korkmazgöz", email = "caglar.korkmazgoez@rwth-aachen.de" }]
 license = { text = "MIT" }
+keywords = ["mcmc", "metropolis-hastings", "bayesian", "sampling", "diagnostics"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: MIT License",
+]
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "matplotlib>=3.8",
+]
+
+[project.optional-dependencies]
+diagnostics = ["arviz>=0.17"]
+notebooks = ["jupyter>=1.0", "ipykernel>=6.29", "seaborn>=0.13"]
+dev = ["pytest>=8.0"]
+
+[project.urls]
+Repository = "https://github.com/korkmazgoz-caglar/random-walk-mcmc"
 
 [tool.setuptools.packages.find]
 where = ["src"]

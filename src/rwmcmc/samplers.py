@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.typing import ArrayLike
+from .proposals import gaussian_random_walk
 
 def random_walk_metropolis_hastings_1d(
     target_log_pdf,
@@ -9,7 +10,7 @@ def random_walk_metropolis_hastings_1d(
     rng: np.random.Generator | None = None,
 
 
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray]:
 
     """
     The random walk Metropolis-Hastings algorithm is a Markov Chain Monte Carlo (MCMC) method used to sample from a target distribution when direct sampling is difficult. It constructs a Markov chain that has the target distribution as its stationary distribution. The algorithm iteratively proposes new samples based on the current sample and accepts or rejects them based on the acceptance ratio, which is calculated using the target distribution's log probability density function. The step size parameter controls the scale of the random walk, and the random number generator (rng) can be used to ensure reproducibility of the sampling process. The function returns an array of samples drawn from the target distribution and a boolean array indicating which proposals were accepted. This implementation assumes a symmetric proposal distribution, which simplifies the acceptance ratio calculation.
@@ -26,8 +27,10 @@ def random_walk_metropolis_hastings_1d(
     # Building the Markov chain
     for i in range(1, n_samples):
         current_x = samples[i - 1]
-        epsilon = rng.normal(loc=0.0, scale=step_size) # Draws a random number from Gaussian distribution with mean 0 and standard deviation step_size, it could be any symmetric distribution, but Gaussian is common for random walk proposals. Which is interesting as our target distribution is also Gaussian, but it is not a requirement for the algorithm to work.
-        proposed_x = current_x + epsilon
+        # epsilon = rng.normal(loc=0.0, scale=step_size) # Draws a random number from Gaussian distribution with mean 0 and standard deviation step_size, it could be any symmetric distribution, but Gaussian is common for random walk proposals. Which is interesting as our target distribution is also Gaussian, but it is not a requirement for the algorithm to work.
+        # proposed_x = current_x + epsilon
+
+        proposed_x = gaussian_random_walk(current_x=current_x, step_size=step_size, rng=rng)
         
         log_p_proposed = target_log_pdf(proposed_x)
         log_acceptance_ratio_alpha = log_p_proposed - log_p_current # Log of acceptance ratio, we can use log probabilities to avoid numerical underflow issues when dealing with very small probabilities.
@@ -78,8 +81,10 @@ def random_walk_metropolis_hastings(
     # Building the Markov chain
     for i in range(1, n_samples):
         current_x = samples[i - 1]
-        epsilon = rng.normal(loc=0.0, scale=step_size, size=d)
-        proposed_x = current_x + epsilon
+        # epsilon = rng.normal(loc=0.0, scale=step_size, size=d)
+        # proposed_x = current_x + epsilon
+
+        proposed_x = gaussian_random_walk(current_x=current_x, step_size=step_size, rng=rng)
         
         log_p_proposed = np.asarray(target_log_pdf(proposed_x))
         log_acceptance_ratio_alpha = log_p_proposed - log_p_current 
