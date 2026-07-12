@@ -5,7 +5,14 @@ from .samplers import (
     random_walk_metropolis_hastings,
     random_walk_metropolis_hastings_1d,
 )
-
+from .diagnostics import (
+    acceptance_rate,
+    autocorrelation,
+    dashboard,
+    effective_sample_size,
+    running_mean,
+    summary,
+)
 __version__ = "0.1.0"
 
 __all__ = [

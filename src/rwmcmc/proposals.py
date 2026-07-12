@@ -38,7 +38,7 @@ def gaussian_random_walk(
     epsilon = rng.normal(
         loc = 0.0,
         scale = step_size,
-        size = current_x
+        size = current_x.shape,
     )
     proposal = current_x + epsilon
     
