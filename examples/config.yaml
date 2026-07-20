@@ -1,0 +1,18 @@
+# rwmcmc run configuration
+# Every parameter of a run lives in this file so that the run is fully
+# use: rwmcmc-run examples/config.yaml
+
+target: banana          # gaussian_1d | banana
+x0: [0.0, 0.0]          # initial state (scalar or list matching target dimension)
+n_samples: 8000
+step_size: [1.0, 1.0]   # scalar or per-dimension list
+burn_in: 500
+
+# Reproducibility: set an integer for a deterministic run.
+# Set to null to let rwmcmc draw a fresh seed; the drawn seed is still
+# recorded in run_metadata.yaml so the run can be repeated afterwards.
+seed: 42
+
+output_dir: results     # created if missing
+save_dashboard: true
+param_names: [x1, x2]   # optional labels for the dashboard

@@ -19,12 +19,16 @@ dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
     "matplotlib>=3.8",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
 diagnostics = ["arviz>=0.17"]
 notebooks = ["jupyter>=1.0", "ipykernel>=6.29", "seaborn>=0.13"]
 dev = ["pytest>=8.0"]
+
+[project.scripts]
+rwmcmc-run = "rwmcmc.cli:main"
 
 [project.urls]
 Repository = "https://github.com/korkmazgoz-caglar/random-walk-mcmc"
