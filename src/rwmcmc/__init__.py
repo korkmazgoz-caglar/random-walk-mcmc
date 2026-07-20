@@ -21,4 +21,11 @@ __all__ = [
     "gaussian_random_walk",
     "random_walk_metropolis_hastings",
     "random_walk_metropolis_hastings_1d",
+    "acceptance_rate",
+    "autocorrelation",
+    "dashboard",
+    "effective_sample_size",
+    "running_mean",
+    "summary",
+
 ]

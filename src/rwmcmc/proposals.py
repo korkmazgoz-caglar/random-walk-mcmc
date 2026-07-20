@@ -31,7 +31,7 @@ def gaussian_random_walk(
         The proposed new state.
     """
     
-    if rng == None:
+    if rng is None:
         rng = np.random.default_rng()
     
     current_x = np.asarray(current_x, dtype = float)

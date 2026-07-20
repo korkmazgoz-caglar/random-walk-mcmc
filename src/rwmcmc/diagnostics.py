@@ -42,9 +42,8 @@ def autocorrelation(samples: np.ndarray, max_lag: int|None = None) -> np.ndarray
     nfft = int(2**np.ceil(np.log2(2*n))) # we can just select it as > 2*n but FFT works faster with power of 2..
     f = np.fft.rfft(x, n=nfft, axis=0)
     acov = np.fft.irfft(f * np.conjugate(f), n=nfft, axis=0)[:max_lag+1]
-    if acov[0].any == 0:
-        print("Division by zero, all data are the same. Here, I need to add pytest!\n")
-        return 0
+    if np.any(np.isclose(acov[0], 0.0)):
+        raise ValueError("Autocorrelation is undefined because the chain has zero variance.")
     norm_acov = acov / acov[0]
     return norm_acov
 
@@ -70,7 +69,16 @@ def effective_sample_size(samples: np.ndarray) -> np.ndarray:
 
 
 def summary(samples: np.ndarray, accepted: np.ndarray, burn_in: int=0) -> dict:
-    """Summary statistics."""
+    """Summary statistics.
+    ...
+    outputs:
+        "n_samples": int(x.shape[0]),
+        "n_dim": int(x.shape[1]),
+        "acceptance_rate": acceptance_rate(accepted, burn_in),
+        "mean": x.mean(axis=0),
+        "std": x.std(axis=0),
+        "ess": effective_sample_size(x),
+        """
     x = convert_2d(samples=samples)[burn_in:]
     return{
         "n_samples": int(x.shape[0]),
