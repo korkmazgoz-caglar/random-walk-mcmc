@@ -79,3 +79,15 @@ def test_corner_rejects_1d():
     rng = np.random.default_rng(7)
     with pytest.raises(ValueError):
         corner(rng.normal(size=500))
+
+
+def test_all_matches_public_names():
+    # __all__ must list exactly the public names importable from the package, I always forget...
+    import types
+    import rwmcmc
+    public = {
+        name for name in dir(rwmcmc)
+        if not name.startswith("_")
+        and not isinstance(getattr(rwmcmc, name), types.ModuleType)
+    }
+    assert public == set(rwmcmc.__all__)

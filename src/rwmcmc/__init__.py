@@ -28,5 +28,6 @@ __all__ = [
     "effective_sample_size",
     "running_mean",
     "summary",
+    "corner",
 
 ]
