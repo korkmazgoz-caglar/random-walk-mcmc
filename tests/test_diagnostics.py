@@ -5,6 +5,7 @@ Usage:
     python -m pytest tests/ -v
 """
 import numpy as np
+import pytest
 
 from rwmcmc import (
     acceptance_rate,
@@ -12,6 +13,7 @@ from rwmcmc import (
     effective_sample_size,
     running_mean,
     summary,
+    corner,
 )
 
 
@@ -65,3 +67,15 @@ def test_ess_ar1_matches_theory():
     ess = effective_sample_size(x)[0]
     theory = n * (1 - phi) / (1 + phi)
     assert 0.5 * theory < ess < 1.5 * theory
+
+
+def test_corner_returns_dxd_grid():
+    rng = np.random.default_rng(6)
+    fig = corner(rng.normal(size=(500, 3)))
+    assert len(fig.axes) == 9  # 3x3 grid
+
+
+def test_corner_rejects_1d():
+    rng = np.random.default_rng(7)
+    with pytest.raises(ValueError):
+        corner(rng.normal(size=500))

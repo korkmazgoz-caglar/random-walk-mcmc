@@ -160,3 +160,42 @@ def dashboard(
     fig.suptitle(txt, fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     return fig
+
+
+def corner(
+    samples: np.ndarray,
+    burn_in: int = 0,
+    param_names: list[str] | None = None,
+    bins: int = 40,
+    figsize_per_var: float = 2.2,
+):
+    """Corner plot: how correlated our parameters?
+    Returns the matplotlib Figure.
+    """
+    x = convert_2d(samples)[burn_in:]
+    n, d = x.shape
+    if d < 2:
+        raise ValueError("corner plot needs at least 2 dimensions")
+    if param_names is None:
+        param_names = [f"x{j}" for j in range(d)]
+
+    fig, axes = plt.subplots(
+        d, d, figsize=(figsize_per_var * d, figsize_per_var * d), squeeze=False
+    )
+    for i in range(d):        # row
+        for j in range(d):    # column
+            ax = axes[i, j]
+            if j > i:
+                ax.axis("off")                      # upper triangle: empty
+            elif i == j:
+                ax.hist(x[:, i], bins=bins, density=True, alpha=0.8)
+            else:
+                ax.hist2d(x[:, j], x[:, i], bins=bins, cmap="viridis")
+            if i == d - 1 and j <= i:
+                ax.set_xlabel(param_names[j], fontsize=9)
+            if j == 0 and i > 0:
+                ax.set_ylabel(param_names[i], fontsize=9)
+            ax.tick_params(labelsize=7)
+    fig.suptitle(f"joint distributions (n = {n} post burn-in)", fontsize=10)
+    fig.tight_layout(rect=(0, 0, 1, 0.96))
+    return fig

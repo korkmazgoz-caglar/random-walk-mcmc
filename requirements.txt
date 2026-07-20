@@ -1,7 +1,3 @@
-numpy>=1.26
-scipy>=1.11
-matplotlib>=3.8
-jupyter>=1.0
-ipykernel>=6.29
-arviz>=0.17
-pytest>=8.0
+# All dependencies are defined in pyproject.toml (single source of truth).
+# This file exists only as a convenience entry point:
+-e .[dev,notebooks]

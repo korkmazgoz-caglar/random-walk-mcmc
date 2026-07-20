@@ -15,4 +15,6 @@ seed: 42
 
 output_dir: results     # created if missing
 save_dashboard: true
+save_corner: true       # corner plot (needs >= 2 dimensions)
+
 param_names: [x1, x2]   # optional labels for the dashboard

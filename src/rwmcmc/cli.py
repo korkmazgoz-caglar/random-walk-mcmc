@@ -79,6 +79,11 @@ def main(argv: list[str] | None = None) -> None:
         )
         fig.savefig(out / "dashboard.png", dpi=120)
 
+    if config.get("save_corner", False) and samples.ndim == 2 and samples.shape[1] >= 2:
+            from .diagnostics import corner
+            fig = corner(samples, burn_in=burn_in, param_names=config.get("param_names"))
+            fig.savefig(out / "corner.png", dpi=120)
+
     metadata = {
         "config": config,
         "resolved_seed": seed,  # actual seed used, even when config had null

@@ -12,6 +12,7 @@ from .diagnostics import (
     effective_sample_size,
     running_mean,
     summary,
+    corner,
 )
 __version__ = "0.1.0"
 
