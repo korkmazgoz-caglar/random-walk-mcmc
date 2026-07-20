@@ -44,3 +44,24 @@ def test_summary_keys_and_dims():
     assert st["n_dim"] == 2
     assert st["mean"].shape == (2,)
     assert st["ess"].shape == (2,)
+
+
+# I will check them.
+
+def test_ess_iid_close_to_n():
+    # independent samples are worth almost their own count
+    rng = np.random.default_rng(3)
+    n = 20000
+    ess = effective_sample_size(rng.normal(size=n))
+    assert 0.9 * n < ess[0] <= 1.1 * n
+
+
+def test_ess_ar1_matches_theory():
+    # AR(1) is known ESS ratio (1-phi)/(1+phi); generated loop-free with lfilter
+    from scipy.signal import lfilter
+    rng = np.random.default_rng(4)
+    phi, n = 0.9, 50000
+    x = lfilter([1.0], [1.0, -phi], rng.normal(size=n))
+    ess = effective_sample_size(x)[0]
+    theory = n * (1 - phi) / (1 + phi)
+    assert 0.5 * theory < ess < 1.5 * theory
