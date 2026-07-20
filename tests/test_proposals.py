@@ -24,9 +24,9 @@ def test_zero_step_size_returns_current_state():
 
 
 def test_step_statistics_match_step_size():
-    # over many draws, epsilon = x' - x must have mean ~ 0 and std ~ step_size
+    # over many draws, epsilon = x' - x must have mean around 0 and std around step_size
     rng = np.random.default_rng(1)
-    x0 = np.full(200000, 10.0) # Gaussian around zero, explicitly not around zero
+    x0 = np.full(200000, 10.0) # Gaussian NOT around zero, explicitly
     eps = gaussian_random_walk(x0, step_size=2.0, rng=rng) - x0
     assert abs(eps.mean()) < 0.02
     assert abs(eps.std() - 2.0) < 0.02
