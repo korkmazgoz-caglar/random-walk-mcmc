@@ -1,5 +1,7 @@
 # rwmcmc
 
+[![tests](https://github.com/korkmazgoz-caglar/random-walk-mcmc/actions/workflows/tests.yml/badge.svg)](https://github.com/korkmazgoz-caglar/random-walk-mcmc/actions/workflows/tests.yml)
+
 A lightweight, pip-installable Python package for **Random-Walk Metropolis-Hastings (RWMH)** sampling, with built-in convergence diagnostics, a one-figure visual dashboard, and a fully reproducible, config-driven command line interface.
 
 Developed as a research project for the *Sustainable Computational Engineering* course at RWTH Aachen University. The package is also used as one of the samplers in the collaborative benchmarking pipeline [mcmc-bench](https://github.com/thealanjason/mcmc-bench).
