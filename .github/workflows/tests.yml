@@ -32,6 +32,4 @@ jobs:
           ruff check .
 
       - name: Run tests
-        env:
-          MPLBACKEND: Agg
         run: python -m pytest tests/ -v

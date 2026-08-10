@@ -5,6 +5,7 @@ Usage:
     python -m pytest tests/ -v
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
@@ -12,6 +13,7 @@ from rwmcmc import (
     acceptance_rate,
     autocorrelation,
     corner,
+    dashboard,
     effective_sample_size,
     running_mean,
     summary,
@@ -96,3 +98,37 @@ def test_all_matches_public_names():
         if not name.startswith("_") and not isinstance(getattr(rwmcmc, name), types.ModuleType)
     }
     assert public == set(rwmcmc.__all__)
+
+
+def test_dashboard_panel_grid():
+    # one row per dimension, four panels per row
+    rng = np.random.default_rng(8)
+    samples = rng.normal(size=(500, 2))
+    accepted = rng.random(500) < 0.4
+    fig = dashboard(samples, accepted, burn_in=50)
+    assert len(fig.axes) == 8
+    plt.close(fig)
+
+
+def test_dashboard_summary_line_reports_post_burn_in_size():
+    # burn_in must reach the statistics, not only the plots
+    rng = np.random.default_rng(9)
+    samples = rng.normal(size=400)
+    accepted = rng.random(400) < 0.5
+    fig = dashboard(samples, accepted, burn_in=100)
+    title = fig.get_suptitle()
+    assert len(fig.axes) == 4
+    assert "n = 300" in title
+    assert "dim = 1" in title
+    plt.close(fig)
+
+
+def test_dashboard_uses_given_param_names():
+    rng = np.random.default_rng(10)
+    samples = rng.normal(size=(300, 2))
+    accepted = rng.random(300) < 0.4
+    fig = dashboard(samples, accepted, param_names=["alpha", "beta"])
+    titles = [ax.get_title() for ax in fig.axes]
+    assert "trace: alpha" in titles
+    assert "trace: beta" in titles
+    plt.close(fig)
