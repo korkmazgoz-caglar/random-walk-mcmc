@@ -23,7 +23,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-diagnostics = ["arviz>=0.17"]
 notebooks = ["jupyter>=1.0", "ipykernel>=6.29", "seaborn>=0.13"]
 dev = ["pytest>=8.0"]
 

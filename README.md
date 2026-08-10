@@ -25,7 +25,6 @@ Because MCMC samples are *correlated* by construction, raw chains must never be 
 - One-figure visual dashboard: trace, histogram, running mean, and autocorrelation panels per dimension, and a summary line
 - Corner plot for mult-dimensional cases
 - Config-driven CLI (`rwmcmc-run`) that records complete run metadata for reproducibility
-- Optional [ArviZ](https://python.arviz.org) bridge (`to_arviz`) for advanced diagnostics such as R-hat
 
 ## Installation
 
@@ -47,7 +46,6 @@ Optional extras:
 
 | Extra | Installs | Purpose |
 |---|---|---|
-| `[diagnostics]` | arviz | `to_arviz` bridge, R-hat |
 | `[notebooks]` | jupyter, seaborn, etc | running the example notebooks |
 | `[dev]` | pytest | running the test suite |
 

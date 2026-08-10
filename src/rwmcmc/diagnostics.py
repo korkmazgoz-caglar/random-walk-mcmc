@@ -1,8 +1,7 @@
 """
 Diagnostics and Visual Dashboard
 ...
-Numpy based function. Plotting uses matplotlib. 'arviz' not required but can be installed with "pip install rwmcmc[diagnostics]".
-'to_arviz' convertz data to iData for advanced diagnostics (ESS...)
+Numpy based functions. Plotting uses matplotlib.
 
 samples : (n_samples,) or (n_samples, d) array from the samplers in this package.
 accepted : (n_samples,) boolean array from the samplers.
