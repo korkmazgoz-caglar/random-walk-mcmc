@@ -25,7 +25,7 @@ Because MCMC samples are *correlated* by construction, raw chains must never be 
 - Example target distributions: standard Gaussian and the banana-shaped Rosenbrock density (`targets.py`)
 - Diagnostics: acceptance rate, running mean, FFT-based autocorrelation, effective sample size following Geyer's initial positive sequence (`diagnostics.py`)
 - One-figure visual dashboard: trace, histogram, running mean, and autocorrelation panels per dimension, and a summary line
-- Corner plot for mult-dimensional cases
+- Corner plot for multi-dimensional cases
 - Config-driven CLI (`rwmcmc-run`) that records complete run metadata for reproducibility
 
 ## Installation
@@ -128,8 +128,10 @@ src/rwmcmc/
   diagnostics.py   statistics + visual dashboard
   cli.py           rwmcmc-run entry point
 tests/             pytest suite
-notebooks/         exploratory notebooks (development history)
+tutorials/         example notebooks (01-06) and input data
 examples/          example run configuration
+HOWTO.md           step-by-step guide
+CITATION.cff       citation metadata
 ```
 
 ## References
