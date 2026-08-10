@@ -40,3 +40,7 @@ extend-exclude = ["tutorials", "*.md"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
