@@ -24,7 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 notebooks = ["jupyter>=1.0", "ipykernel>=6.29", "seaborn>=0.13"]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "ruff==0.16.*"]
 
 [project.scripts]
 rwmcmc-run = "rwmcmc.cli:main"
@@ -34,3 +34,9 @@ Repository = "https://github.com/korkmazgoz-caglar/random-walk-mcmc"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+[tool.ruff]
+line-length = 100
+extend-exclude = ["tutorials", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
