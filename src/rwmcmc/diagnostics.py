@@ -1,11 +1,11 @@
-"""
-Diagnostics and Visual Dashboard
-...
-Numpy based functions. Plotting uses matplotlib.
+"""Convergence diagnostics and plots for MCMC chains.
 
-samples : (n_samples,) or (n_samples, d) array from the samplers in this package.
+Statistics are computed with NumPy, figures with matplotlib. Most functions
+here take the same three arguments:
+
+samples : (n_samples,) or (n_samples, d) array from the samplers.
 accepted : (n_samples,) boolean array from the samplers.
-burn_in : leading samples to discard before computing statistics.
+burn_in : number of leading samples to discard.
 """
 
 import matplotlib.pyplot as plt
@@ -13,7 +13,11 @@ import numpy as np
 
 
 def convert_2d(samples: np.ndarray) -> np.ndarray:
-    """This function returns samples with shape (n, d) as numpy array, d is the dimension."""
+    """Return the chain as a 2D array of shape (n_samples, d).
+
+    A 1D chain becomes a single column, so the rest of the module can treat
+    every chain the same way.
+    """
     samples = np.asarray(samples)
     if samples.ndim == 1:
         return samples[:, None]
@@ -21,26 +25,43 @@ def convert_2d(samples: np.ndarray) -> np.ndarray:
 
 
 def acceptance_rate(accepted: np.ndarray, burn_in: int = 0) -> float:
-    """Accepted proposals divided by total number of proposals."""
+    """Fraction of proposals accepted, ignoring the first burn_in samples.
 
+    A low rate means the proposal steps are too large, a high rate means they
+    are too small. The optimal value is about 0.44 in one dimension and drops
+    towards 0.234 in high dimensions.
+    """
     return float(np.asarray(accepted)[burn_in:].mean())
 
 
 def running_mean(samples: np.ndarray) -> np.ndarray:
-    """Cumulative mean of the chain to check the behavior of the chain."""
+    """Cumulative mean of the chain, one row per step.
+
+    Returns an array of shape (n_samples, d). Once the curve flattens, the
+    chain has settled.
+    """
     x = convert_2d(samples)
     n = np.arange(1, x.shape[0] + 1)[:, None]
     return np.cumsum(x, axis=0) / n
 
 
 def autocorrelation(samples: np.ndarray, max_lag: int | None = None) -> np.ndarray:
-    """rho[0] = 1 by construction. Fast decay means better mixing!"""
+    """Normalized autocorrelation up to max_lag, computed with an FFT.
+
+    rho[0] is 1 by construction. The faster the values decay, the less
+    correlated the samples are. Returns an array of shape (max_lag + 1, d).
+
+    Raises
+    ------
+    ValueError
+        If the chain has zero variance, so the correlation is undefined.
+    """
     x = convert_2d(samples).astype(float)
     n, d = x.shape
     if max_lag is None:
         max_lag = min(n - 1, 200)
 
-    x -= x.mean(axis=0)  # Get ready for the Fourier Transform...
+    x -= x.mean(axis=0)  # Autocovariance is defined on deviations from the mean.
 
     # Any length > 2*n avoids circular wrap-around; powers of two make the FFT fastest.
     nfft = int(2 ** np.ceil(np.log2(2 * n)))
@@ -65,7 +86,7 @@ def effective_sample_size(samples: np.ndarray) -> np.ndarray:
     ess = np.empty(d)
     for j in range(d):
         pair_sums = rho[1:-1:2, j] + rho[2::2, j]
-        # rho1+rho2, rho3+rho4 vs
+        # pairs: rho1+rho2, rho3+rho4, ...
         tau = 1.0
         for p in pair_sums:
             if p < 0:
@@ -76,15 +97,13 @@ def effective_sample_size(samples: np.ndarray) -> np.ndarray:
 
 
 def summary(samples: np.ndarray, accepted: np.ndarray, burn_in: int = 0) -> dict:
-    """Summary statistics.
-    ...
-    outputs:
-        "n_samples": int(x.shape[0]),
-        "n_dim": int(x.shape[1]),
-        "acceptance_rate": acceptance_rate(accepted, burn_in),
-        "mean": x.mean(axis=0),
-        "std": x.std(axis=0),
-        "ess": effective_sample_size(x),
+    """Collect the diagnostics of a chain into one dictionary.
+
+    Returns
+    -------
+    dict
+        Keys n_samples and n_dim (int), acceptance_rate (float), and mean, std
+        and ess (arrays of length d).
     """
     x = convert_2d(samples=samples)[burn_in:]
     return {
@@ -105,21 +124,28 @@ def dashboard(
     max_lag: int | None = None,
     figsize_per_row: tuple = (13.0, 3.0),
 ):
-    """Visual Dashboard: Trace, histogram, running mean, autocorrelation.
+    """Plot trace, histogram, running mean and autocorrelation in one figure.
 
-    One row per dimension, four panels per row, plus a summary line on top.
-    Returns the matplotlib Figure; call plt.show() or fig.savefig().
+    One row per dimension, four panels per row, with a summary line on top.
+
+    Parameters
+    ----------
+    param_names : list of str or None, default=None
+        Axis labels. Defaults to x0, x1, ... when d > 1.
+    max_lag : int or None, default=None
+        Largest lag shown in the autocorrelation panel.
+    figsize_per_row : tuple, default=(13.0, 3.0)
+        Figure width and per-row height, in inches.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
     """
     x = convert_2d(samples)
     n, d = x.shape
 
     if param_names is None:
-        if d > 1:
-            param_names = []
-            for j in range(d):
-                param_names.append(f"x{j}")
-        else:
-            param_names = ["x"]
+        param_names = [f"x{j}" for j in range(d)] if d > 1 else ["x"]
 
     stats = summary(x, accepted, burn_in)
     xb = x[burn_in:]
@@ -152,13 +178,7 @@ def dashboard(
         ax.axhline(0.0, color="k", lw=0.6)
         ax.set_title(f"autocorrelation: {name}", fontsize=9)
 
-    # ess_txt = ", ".join(f"{e:.0f}" for e in stats["ess"])
-    values = []
-
-    for e in stats["ess"]:
-        values.append(f"{e:.0f}")
-
-    ess_txt = ", ".join(values)
+    ess_txt = ", ".join(f"{e:.0f}" for e in stats["ess"])
     txt = (
         f"n = {stats['n_samples']} (post burn-in) | dim = {d} | "
         f"acceptance = {stats['acceptance_rate']:.2%} | ESS = [{ess_txt}]"
@@ -175,8 +195,28 @@ def corner(
     bins: int = 40,
     figsize_per_var: float = 2.2,
 ):
-    """Corner plot: how correlated our parameters?
-    Returns the matplotlib Figure.
+    """Plot each pair of parameters in a triangular grid.
+
+    The diagonal shows the marginal histogram of each parameter, the lower
+    triangle the joint histogram of each pair, so correlations are visible.
+
+    Parameters
+    ----------
+    param_names : list of str or None, default=None
+        Axis labels. Defaults to x0, x1, ...
+    bins : int, default=40
+        Number of bins in the marginal and joint histograms.
+    figsize_per_var : float, default=2.2
+        Size in inches given to each parameter, in both directions.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+
+    Raises
+    ------
+    ValueError
+        If the chain has fewer than two dimensions.
     """
     x = convert_2d(samples)[burn_in:]
     n, d = x.shape

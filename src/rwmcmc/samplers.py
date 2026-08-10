@@ -6,7 +6,7 @@ the current state. Because the proposal is symmetric, its density cancels in the
 acceptance ratio, which therefore reduces to the ratio of target densities.
 The comparison is done in log space to avoid numerical underflow.
 
-Both samplers take an explicit ``rng`` argument so that runs are reproducible.
+Both samplers take an explicit rng argument so that runs are reproducible.
 """
 
 import numpy as np
@@ -42,10 +42,10 @@ def random_walk_metropolis_hastings(
     Returns
     -------
     samples : numpy.ndarray
-        Chain of shape ``(n_samples, d)``.
+        Chain of shape (n_samples, d).
     accepted : numpy.ndarray
-        Boolean array of shape ``(n_samples,)``. ``accepted[i]`` is True when the
-        proposal at step ``i`` was accepted. ``accepted[0]`` is False because the
+        Boolean array of shape (n_samples,). accepted[i] is True when the
+        proposal at step i was accepted. accepted[0] is False because the
         starting state is not a proposal.
     """
     if rng is None:
@@ -86,7 +86,7 @@ def random_walk_metropolis_hastings_1d(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Sample from a one-dimensional target distribution.
 
-    A thin wrapper around :func:`random_walk_metropolis_hastings` that returns a
+    A thin wrapper around random_walk_metropolis_hastings that returns a
     flat chain instead of a column. Given the same seed, both functions draw the
     identical sequence of random numbers.
 
@@ -107,9 +107,9 @@ def random_walk_metropolis_hastings_1d(
     Returns
     -------
     samples : numpy.ndarray
-        Chain of shape ``(n_samples,)``.
+        Chain of shape (n_samples,).
     accepted : numpy.ndarray
-        Boolean array of shape ``(n_samples,)``.
+        Boolean array of shape (n_samples,).
     """
     samples, accepted = random_walk_metropolis_hastings(
         target_log_pdf, x0=x0, n_samples=n_samples, step_size=step_size, rng=rng
