@@ -4,16 +4,17 @@ Tests for rwmcmc.diagnostics against known analytical results.
 Usage:
     python -m pytest tests/ -v
 """
+
 import numpy as np
 import pytest
 
 from rwmcmc import (
     acceptance_rate,
     autocorrelation,
+    corner,
     effective_sample_size,
     running_mean,
     summary,
-    corner,
 )
 
 
@@ -50,6 +51,7 @@ def test_summary_keys_and_dims():
 
 # I will check them.
 
+
 def test_ess_iid_close_to_n():
     # independent samples are worth almost their own count
     rng = np.random.default_rng(3)
@@ -61,6 +63,7 @@ def test_ess_iid_close_to_n():
 def test_ess_ar1_matches_theory():
     # AR(1) is known ESS ratio (1-phi)/(1+phi); generated loop-free with lfilter
     from scipy.signal import lfilter
+
     rng = np.random.default_rng(4)
     phi, n = 0.9, 50000
     x = lfilter([1.0], [1.0, -phi], rng.normal(size=n))
@@ -84,10 +87,12 @@ def test_corner_rejects_1d():
 def test_all_matches_public_names():
     # __all__ must list exactly the public names importable from the package, I always forget...
     import types
+
     import rwmcmc
+
     public = {
-        name for name in dir(rwmcmc)
-        if not name.startswith("_")
-        and not isinstance(getattr(rwmcmc, name), types.ModuleType)
+        name
+        for name in dir(rwmcmc)
+        if not name.startswith("_") and not isinstance(getattr(rwmcmc, name), types.ModuleType)
     }
     assert public == set(rwmcmc.__all__)

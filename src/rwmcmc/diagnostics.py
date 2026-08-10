@@ -8,8 +8,9 @@ accepted : (n_samples,) boolean array from the samplers.
 burn_in : leading samples to discard before computing statistics.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
 
 def convert_2d(samples: np.ndarray) -> np.ndarray:
     """This function returns samples with shape (n, d) as numpy array, d is the dimension."""
@@ -18,29 +19,33 @@ def convert_2d(samples: np.ndarray) -> np.ndarray:
         return samples[:, None]
     return samples
 
-def acceptance_rate(accepted: np.ndarray, burn_in: int=0) -> float:
+
+def acceptance_rate(accepted: np.ndarray, burn_in: int = 0) -> float:
     """Accepted proposals divided by total number of proposals."""
 
     return float(np.asarray(accepted)[burn_in:].mean())
 
-def running_mean(samples: np.ndarray)->np.ndarray:
+
+def running_mean(samples: np.ndarray) -> np.ndarray:
     """Cumulative mean of the chain to check the behavior of the chain."""
     x = convert_2d(samples)
-    n = np.arange(1, x.shape[0]+1)[:, None]
-    return np.cumsum(x, axis=0)/n
+    n = np.arange(1, x.shape[0] + 1)[:, None]
+    return np.cumsum(x, axis=0) / n
 
-def autocorrelation(samples: np.ndarray, max_lag: int|None = None) -> np.ndarray:
+
+def autocorrelation(samples: np.ndarray, max_lag: int | None = None) -> np.ndarray:
     """rho[0] = 1 by construction. Fast decay means better mixing!"""
     x = convert_2d(samples).astype(float)
-    n,d = x.shape
+    n, d = x.shape
     if max_lag is None:
-        max_lag = min(n-1,200)
+        max_lag = min(n - 1, 200)
 
-    x-=x.mean(axis=0) # Get ready for the Fourier Transform...
+    x -= x.mean(axis=0)  # Get ready for the Fourier Transform...
 
-    nfft = int(2**np.ceil(np.log2(2*n))) # we can just select it as > 2*n but FFT works faster with power of 2..
+    # Any length > 2*n avoids circular wrap-around; powers of two make the FFT fastest.
+    nfft = int(2 ** np.ceil(np.log2(2 * n)))
     f = np.fft.rfft(x, n=nfft, axis=0)
-    acov = np.fft.irfft(f * np.conjugate(f), n=nfft, axis=0)[:max_lag+1]
+    acov = np.fft.irfft(f * np.conjugate(f), n=nfft, axis=0)[: max_lag + 1]
     if np.any(np.isclose(acov[0], 0.0)):
         raise ValueError("Autocorrelation is undefined because the chain has zero variance.")
     norm_acov = acov / acov[0]
@@ -48,26 +53,29 @@ def autocorrelation(samples: np.ndarray, max_lag: int|None = None) -> np.ndarray
 
 
 def effective_sample_size(samples: np.ndarray) -> np.ndarray:
-    """Effective sample size per dimension
-    
-    Geyer's initial positive sequence: sums of autocorrelation pairs (rho_2k + rho_(2k+1) are accumulated as long as they the sum is positive. ESS: How many independent samples the correlated chain is worth.)"""
+    """Effective sample size per dimension.
+
+    Uses Geyer's initial positive sequence: consecutive autocorrelation pairs
+    (rho_2k + rho_2k+1) are accumulated while their sum stays positive. The
+    result says how many independent samples the correlated chain is worth.
+    """
     x = convert_2d(samples=samples)
-    n,d = x.shape
-    rho = autocorrelation(x, max_lag=min(n-1, 1000))
+    n, d = x.shape
+    rho = autocorrelation(x, max_lag=min(n - 1, 1000))
     ess = np.empty(d)
     for j in range(d):
-        pair_sums = rho[1:-1:2, j]+rho[2::2, j]
+        pair_sums = rho[1:-1:2, j] + rho[2::2, j]
         # rho1+rho2, rho3+rho4 vs
         tau = 1.0
         for p in pair_sums:
             if p < 0:
                 break
-            tau += 2.0*p
-        ess[j] = n/tau
+            tau += 2.0 * p
+        ess[j] = n / tau
     return ess
 
 
-def summary(samples: np.ndarray, accepted: np.ndarray, burn_in: int=0) -> dict:
+def summary(samples: np.ndarray, accepted: np.ndarray, burn_in: int = 0) -> dict:
     """Summary statistics.
     ...
     outputs:
@@ -77,9 +85,9 @@ def summary(samples: np.ndarray, accepted: np.ndarray, burn_in: int=0) -> dict:
         "mean": x.mean(axis=0),
         "std": x.std(axis=0),
         "ess": effective_sample_size(x),
-        """
+    """
     x = convert_2d(samples=samples)[burn_in:]
-    return{
+    return {
         "n_samples": int(x.shape[0]),
         "n_dim": int(x.shape[1]),
         "acceptance_rate": acceptance_rate(accepted, burn_in),
@@ -89,14 +97,13 @@ def summary(samples: np.ndarray, accepted: np.ndarray, burn_in: int=0) -> dict:
     }
 
 
-
 def dashboard(
     samples: np.ndarray,
     accepted: np.ndarray,
     burn_in: int = 0,
     param_names: list[str] | None = None,
     max_lag: int | None = None,
-    figsize_per_row: tuple = (13., 3.),
+    figsize_per_row: tuple = (13.0, 3.0),
 ):
     """Visual Dashboard: Trace, histogram, running mean, autocorrelation.
 
@@ -105,11 +112,11 @@ def dashboard(
     """
     x = convert_2d(samples)
     n, d = x.shape
-  
+
     if param_names is None:
         if d > 1:
             param_names = []
-            for j in range(d): 
+            for j in range(d):
                 param_names.append(f"x{j}")
         else:
             param_names = ["x"]
@@ -181,11 +188,11 @@ def corner(
     fig, axes = plt.subplots(
         d, d, figsize=(figsize_per_var * d, figsize_per_var * d), squeeze=False
     )
-    for i in range(d):        # row
-        for j in range(d):    # column
+    for i in range(d):  # row
+        for j in range(d):  # column
             ax = axes[i, j]
             if j > i:
-                ax.axis("off")                      # upper triangle: empty
+                ax.axis("off")  # upper triangle: empty
             elif i == j:
                 ax.hist(x[:, i], bins=bins, density=True, alpha=0.8)
             else:

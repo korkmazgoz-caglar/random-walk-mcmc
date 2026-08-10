@@ -1,17 +1,17 @@
 """
 Proposal distributions for RWMCMC
 ...
-A proposal takes the initial and returns the proposed state. In this package, our proposals use symmetric distribution around the initial to create a new proposed state so q(x|x') = q(x'|x) and they cancel out each other during the acceptance criteria.
+A proposal takes the current state and returns a candidate state. The proposals in
+this package are symmetric around the current state, so q(x|x') = q(x'|x) and the
+proposal densities cancel in the acceptance ratio.
 """
 
 import numpy as np
 from numpy.typing import ArrayLike
 
-def gaussian_random_walk(
-    current_x: ArrayLike,
-    step_size: float | ArrayLike = 1.0,
-    rng: np.random.Generator | None = None
 
+def gaussian_random_walk(
+    current_x: ArrayLike, step_size: float | ArrayLike = 1.0, rng: np.random.Generator | None = None
 ) -> np.ndarray:
     """
     Symmetric Gaussian random walk proposal distribution.
@@ -30,16 +30,16 @@ def gaussian_random_walk(
     np.ndarray
         The proposed new state.
     """
-    
+
     if rng is None:
         rng = np.random.default_rng()
-    
-    current_x = np.asarray(current_x, dtype = float)
+
+    current_x = np.asarray(current_x, dtype=float)
     epsilon = rng.normal(
-        loc = 0.0,
-        scale = step_size,
-        size = current_x.shape,
+        loc=0.0,
+        scale=step_size,
+        size=current_x.shape,
     )
     proposal = current_x + epsilon
-    
+
     return proposal

@@ -12,6 +12,7 @@ Writes into the configured output directory:
     run_metadata.yaml  full record of the run: config used, resolved seed,
                        package versions, timestamp -> makes the run reproducible
 """
+
 import argparse
 import datetime
 from pathlib import Path
@@ -20,9 +21,10 @@ import numpy as np
 import yaml
 
 import rwmcmc
+
+from .diagnostics import dashboard, summary
 from .samplers import random_walk_metropolis_hastings
-from .targets import gaussian_1d_log_pdf, banana_log_pdf
-from .diagnostics import summary, dashboard
+from .targets import banana_log_pdf, gaussian_1d_log_pdf
 
 TARGETS = {
     "gaussian_1d": gaussian_1d_log_pdf,
@@ -74,15 +76,18 @@ def main(argv: list[str] | None = None) -> None:
 
     if config.get("save_dashboard", True):
         fig = dashboard(
-            samples, accepted, burn_in=burn_in,
+            samples,
+            accepted,
+            burn_in=burn_in,
             param_names=config.get("param_names"),
         )
         fig.savefig(out / "dashboard.png", dpi=120)
 
     if config.get("save_corner", False) and samples.ndim == 2 and samples.shape[1] >= 2:
-            from .diagnostics import corner
-            fig = corner(samples, burn_in=burn_in, param_names=config.get("param_names"))
-            fig.savefig(out / "corner.png", dpi=120)
+        from .diagnostics import corner
+
+        fig = corner(samples, burn_in=burn_in, param_names=config.get("param_names"))
+        fig.savefig(out / "corner.png", dpi=120)
 
     metadata = {
         "config": config,
