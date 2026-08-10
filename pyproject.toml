@@ -13,7 +13,7 @@ license = { text = "MIT" }
 keywords = ["mcmc", "metropolis-hastings", "bayesian", "sampling", "diagnostics"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: MIT License",
+    "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
     "numpy>=1.26",
