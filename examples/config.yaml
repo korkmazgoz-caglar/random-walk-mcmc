@@ -1,6 +1,6 @@
 # rwmcmc run configuration
-# Every parameter of a run lives in this file so that the run is fully
-# use: rwmcmc-run examples/config.yaml
+# Every parameter of a run lives in this file, so the run is fully reproducible.
+# Use: rwmcmc-run examples/config.yaml
 
 target: banana          # gaussian_1d | banana
 x0: [0.0, 0.0]          # initial state (scalar or list matching target dimension)

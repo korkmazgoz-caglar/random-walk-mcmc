@@ -55,6 +55,15 @@ save_corner: true       # also write corner.png (pairwise joint plot, needs >= 2
 param_names: [x1, x2]   # labels used in the dashboard (optional)
 ```
 
+The documented settings are validated before the sampling loop starts: `burn_in` must be smaller than `n_samples`, `seed` must be a non-negative integer or `null`, `save_corner` requires an `x0` with at least two dimensions, and `param_names` must have one name per dimension. A file that breaks one of these rules is reported as a short command line error rather than a traceback:
+
+```
+usage: rwmcmc-run [-h] config
+rwmcmc-run: error: burn_in must be smaller than n_samples (8000), got 9000
+```
+
+The command then exits with status 2 and writes nothing: no output directory, no samples, no metadata.
+
 ## 4. Where are my results and what is in them?
 
 Inside `output_dir` (default `results/`):
@@ -104,6 +113,22 @@ stats = summary(samples, accepted, burn_in=1000)
 fig = dashboard(samples, accepted, burn_in=1000)
 ```
 
+If you run several chains with the same settings, the class API keeps the target, the proposal scale, and the generator in one place:
+
+```python
+import numpy as np
+from rwmcmc import RandomWalkMetropolisHastings, gaussian_1d_log_pdf
+
+sampler = RandomWalkMetropolisHastings(
+    gaussian_1d_log_pdf,
+    step_size=2.4,
+    rng=np.random.default_rng(42),
+)
+samples, accepted = sampler.sample(x0=0.0, n_samples=10000)
+```
+
+The module-level functions shown above are thin wrappers around this class, so both produce the identical chain when given separate generators initialized with the same seed.
+
 For multi-dimensional targets, the pairwise joint structure is one call away:
 
 ```python
@@ -150,3 +175,5 @@ then import it like any other package. The [mcmc-bench](https://github.com/theal
 - **`rwmcmc-run: command not found`** — the console script is created at install time; re-run `pip install -e .` in the environment you are using.
 - **Notebook can't import rwmcmc** — the Jupyter kernel is a different Python than the one you installed into. Compare `import sys; print(sys.executable)` in the notebook with `which python` in the shell.
 - **`ValueError: ... zero variance`** from the diagnostics — your chain never moved (step size far too large, or a degenerate target). Inspect the trace and reduce the step size.
+- **`rwmcmc-run: error: ...` with no traceback** — the configuration was refused before sampling started, and the message names the setting to fix. The command exits with status 2 and writes no output.
+- **`TypeError: n_samples must be an integer`, `ValueError: step_size must be strictly positive`, and similar** — the sampler checks its arguments before it starts, so a wrong value fails right away instead of producing a chain that looks fine but is meaningless.
