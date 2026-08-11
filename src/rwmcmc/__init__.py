@@ -13,6 +13,7 @@ from .diagnostics import (
 )
 from .proposals import gaussian_random_walk
 from .samplers import (
+    RandomWalkMetropolisHastings,
     random_walk_metropolis_hastings,
     random_walk_metropolis_hastings_1d,
 )
@@ -24,6 +25,7 @@ __all__ = [
     "gaussian_1d_log_pdf",
     "banana_log_pdf",
     "gaussian_random_walk",
+    "RandomWalkMetropolisHastings",
     "random_walk_metropolis_hastings",
     "random_walk_metropolis_hastings_1d",
     "acceptance_rate",

@@ -69,6 +69,26 @@ fig = dashboard(samples, accepted, burn_in=500, param_names=["x1", "x2"])
 fig.savefig("dashboard.png")
 ```
 
+### Reusable sampler class
+
+Use the class API when the target, proposal scale, and random number generator
+should be reused across runs:
+
+```python
+import numpy as np
+from rwmcmc import RandomWalkMetropolisHastings, banana_log_pdf
+
+sampler = RandomWalkMetropolisHastings(
+    banana_log_pdf,
+    step_size=[1.0, 1.0],
+    rng=np.random.default_rng(42),
+)
+samples, accepted = sampler.sample(
+    x0=[0.0, 0.0],
+    n_samples=8000,
+)
+```
+
 ### Command line
 
 Copy the example configuration and adapt it:
