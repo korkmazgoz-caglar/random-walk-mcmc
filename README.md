@@ -21,6 +21,8 @@ Because MCMC samples are *correlated* by construction, raw chains must never be 
 ## Features
 
 - 1D and n-dimensional random-walk Metropolis-Hastings samplers (`samplers.py`)
+- Reusable `RandomWalkMetropolisHastings` class holding the target, the proposal scale, and the generator; the functions above are thin wrappers over it
+- Input validation in the sampler and in the CLI: a wrong argument or a wrong config entry is refused with a clear message before any sampling starts
 - Symmetric Gaussian proposal, separated into its own module (`proposals.py`)
 - Example target distributions: standard Gaussian and the banana-shaped Rosenbrock density (`targets.py`)
 - Diagnostics: acceptance rate, running mean, FFT-based autocorrelation, effective sample size following Geyer's initial positive sequence (`diagnostics.py`)
@@ -49,7 +51,7 @@ Optional extras:
 | Extra | Installs | Purpose |
 |---|---|---|
 | `[notebooks]` | jupyter, seaborn, etc | running the example notebooks |
-| `[dev]` | pytest | running the test suite |
+| `[dev]` | pytest, ruff | running the test suite, formatting and linting |
 
 ## Quickstart
 
@@ -98,7 +100,7 @@ cp examples/config.yaml my_run.yaml
 rwmcmc-run my_run.yaml
 ```
 
-This writes four files into the configured output directory:
+This writes the following files into the configured output directory:
 
 | File | Content |
 |---|---|
@@ -132,10 +134,14 @@ This package is consumed by the Nextflow benchmarking pipeline [mcmc-bench](http
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest tests/ -v
+ruff format .           # apply the formatting
+ruff check .            # lint
+python -m pytest -v     # run the test suite
 ```
 
-The suite covers output shapes, seed reproducibility, statistical correctness of the sampler against a known target, and validates the diagnostics against analytical results (i.i.d. limits and the AR(1) process with known ESS ratio).
+Formatting and linting use [ruff](https://docs.astral.sh/ruff/), configured in `pyproject.toml`: line length 100, rule sets `E` (pycodestyle), `F` (pyflakes) and `I` (import order), with `tutorials/` and `*.md` excluded. GitHub Actions checks formatting, linting, and tests on pushes to `main` and on every pull request, using Python 3.10 and 3.13.
+
+The suite covers output shapes, seed reproducibility, statistical correctness of the sampler against a known target, the diagnostics against analytical results (i.i.d. limits and the AR(1) process with known ESS ratio), and the errors raised for invalid input on both the Python API and command line side.
 
 ## Project structure
 
@@ -150,6 +156,7 @@ src/rwmcmc/
 tests/             pytest suite
 tutorials/         example notebooks (01-06) and input data
 examples/          example run configuration
+.github/workflows/ continuous integration: lint and tests
 HOWTO.md           step-by-step guide
 CITATION.cff       citation metadata
 ```
