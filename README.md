@@ -46,6 +46,13 @@ cd random-walk-mcmc
 pip install -e ".[dev,notebooks]"
 ```
 
+Verify that the installation and its version are visible from the active Python environment:
+
+```bash
+python -c "import rwmcmc; print(rwmcmc.__version__)"
+which rwmcmc-run
+```
+
 Optional extras:
 
 | Extra | Installs | Purpose |
@@ -91,6 +98,29 @@ samples, accepted = sampler.sample(
 )
 ```
 
+### Your own target
+
+A target can be any callable that accepts the current position and returns its
+unnormalized log-density. Additive normalization constants are unnecessary because they
+cancel in the Metropolis-Hastings ratio:
+
+```python
+import numpy as np
+from rwmcmc import random_walk_metropolis_hastings
+
+def my_log_pdf(x):
+    x = np.asarray(x)
+    return -0.5 * np.sum((x / 2.0) ** 2)
+
+samples, accepted = random_walk_metropolis_hastings(
+    my_log_pdf,
+    x0=[0.0],
+    n_samples=10000,
+    step_size=[2.0],
+    rng=np.random.default_rng(42),
+)
+```
+
 ### Command line
 
 If you cloned the repository, copy the tracked example and run it:
@@ -107,19 +137,46 @@ curl -L https://raw.githubusercontent.com/korkmazgoz-caglar/random-walk-mcmc/mai
 rwmcmc-run my_run.yaml
 ```
 
-You can also create `my_run.yaml` manually; the complete configuration is documented in [HOWTO.md](HOWTO.md).
+Alternatively, create `my_run.yaml` manually:
 
-This writes the following files into the configured output directory:
+```yaml
+target: banana          # gaussian_1d | banana
+x0: [0.0, 3.0]          # starting point; dimension must match the target
+n_samples: 50000        # complete chain length, including burn-in
+step_size: [4.0, 2.0]   # proposal std; scalar or one value per dimension
+burn_in: 5000           # leading samples excluded from diagnostics
+seed: 42                # integer -> deterministic; null -> draw and record a seed
+output_dir: results     # output directory
+save_dashboard: true    # write dashboard.png
+save_corner: true       # write corner.png; requires at least two dimensions
+param_names: [x1, x2]   # optional labels
+```
+
+All entries are validated before sampling starts. In particular, `n_samples` must be at
+least 2, `burn_in` must be smaller than `n_samples`, proposal scales must be finite and
+strictly positive, `seed` must be a non-negative integer or `null`, and `param_names` must
+match the target dimension. Unknown keys are rejected, so a typo such as `burnin` cannot
+silently fall back to a default.
+
+Invalid configurations produce a short command-line error and exit status 2 without
+creating the output directory:
+
+```text
+usage: rwmcmc-run [-h] config
+rwmcmc-run: error: burn_in must be smaller than n_samples (50000), got 60000
+```
+
+A successful run prints the resolved seed, acceptance rate, and output location. It writes
+the following files into the configured output directory:
 
 | File | Content |
 |---|---|
 | `samples.npy` | the chain, shape `(n_samples, d)` |
-| `accepted.npy` | boolean acceptance array |
-| `dashboard.png` | visual diagnostics |
-| `corner.png` | visual diagnostics |
+| `accepted.npy` | proposal decisions; element 0 marks the starting state, not a proposal |
+| `dashboard.png` | visual diagnostics, written when `save_dashboard: true` |
+| `corner.png` | pairwise diagnostics, written when `save_corner: true` |
 | `run_metadata.yaml` | full record of the run (see below) |
 
-See [HOWTO.md](HOWTO.md) for a step-by-step guide.
 
 ## Reproducibility
 
@@ -136,9 +193,52 @@ The digests let you check a replay without keeping the old files: compare the `s
 
 MCMC chains are correlated: each sample is a small step from the previous one, so 8000 samples carry less information than 8000 independent draws. The **autocorrelation function** measures how long this "memory" lasts, and the **effective sample size** (ESS) converts it into a single number: how many independent samples the chain is worth. The dashboard shows both, next to the trace and histogram, so that step-size tuning problems are visible at a glance. The ESS estimator follows Geyer's initial positive sequence method (see references) via FFT.
 
+Each parameter gets one dashboard row with four panels:
+
+- **Trace:** the chain over time. Long flat stretches indicate many rejections; slow drift
+  suggests steps that are too small or a chain that is too short.
+- **Histogram:** the sampled marginal distribution after burn-in.
+- **Running mean:** a cumulative estimate that should stabilize as the chain progresses.
+- **Autocorrelation:** dependence at increasing lags; faster decay generally means better
+  mixing and a larger ESS.
+
+The summary line reports the post-burn-in sample count, proposal acceptance rate, and ESS.
+An acceptance rate near 44% is a useful reference in one dimension; the asymptotic
+high-dimensional reference is about 23.4%. These are tuning guides, not correctness tests.
+A very small ESS relative to the retained chain length indicates poor mixing.
+
+For multi-dimensional runs, `corner.png` complements the per-parameter dashboard by showing
+pairwise joint structure, including correlations and nonlinear shapes such as the banana
+target's curved ridge.
+
 ## Use in mcmc-bench
 
 This package is consumed by the Nextflow benchmarking pipeline [mcmc-bench](https://github.com/thealanjason/mcmc-bench), where it is installed via pip from this repository and compared against `emcee`, `dynesty`, `Slice`, and `SMC` on a surrogate-model calibration task. This demonstrates the package working as an installable dependency in an independent project.
+
+Another project can install a specific release through its dependency file using, for
+example:
+
+```text
+git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.0
+```
+
+Pinning a tag or commit prevents an environment rebuild from silently selecting a newer
+revision.
+
+## Troubleshooting
+
+- **`rwmcmc-run: command not found`:** ensure the package was installed in the active
+  environment and check `which rwmcmc-run`.
+- **A notebook cannot import `rwmcmc`:** its kernel may use a different Python environment.
+  Compare `import sys; print(sys.executable)` inside the notebook with `which python`.
+- **`ImportError: attempted relative import with no known parent package`:** do not execute
+  files such as `src/rwmcmc/samplers.py` directly; install and import the package.
+- **A zero-variance diagnostic error:** the chain did not move. Inspect the trace and reduce
+  an excessively large proposal scale, or check whether the target is degenerate.
+- **`rwmcmc-run: error: ...`:** the CLI rejected the configuration before sampling. The
+  message identifies the entry to correct; no output is written for an invalid config.
+- **Sampler `TypeError` or `ValueError`:** invalid sampler arguments are rejected before the
+  chain starts rather than producing a misleading result.
 
 ## Development
 
@@ -167,7 +267,7 @@ tests/             pytest suite
 tutorials/         example notebooks (01-06) and input data
 examples/          example run configuration
 .github/workflows/ continuous integration: lint and tests
-HOWTO.md           step-by-step guide
+CHANGELOG.md       release history and unreleased changes
 CITATION.cff       citation metadata
 ```
 

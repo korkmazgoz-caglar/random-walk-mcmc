@@ -108,6 +108,44 @@ def test_a_bad_configuration_stops_before_sampling(tmp_path, monkeypatch, capsys
     assert not (tmp_path / "results").exists()
 
 
+def test_a_one_sample_run_is_refused_before_sampling(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("sampler must not run when the CLI cannot compute diagnostics")
+
+    monkeypatch.setattr("rwmcmc.cli.random_walk_metropolis_hastings", fail_if_called)
+    path = write_config(tmp_path, n_samples=1, burn_in=0)
+
+    with pytest.raises(SystemExit) as exit_info:
+        main([str(path)])
+
+    captured = capsys.readouterr()
+    assert exit_info.value.code == 2
+    assert "n_samples must be at least 2 for CLI diagnostics" in captured.err
+    assert "Traceback" not in captured.err
+    assert not (tmp_path / "results").exists()
+
+
+def test_a_diagnostic_error_is_reported_as_a_cli_error(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+
+    def fail_diagnostics(*args, **kwargs):
+        raise ValueError("diagnostics are undefined for this chain")
+
+    monkeypatch.setattr("rwmcmc.cli.summary", fail_diagnostics)
+    path = write_config(tmp_path)
+
+    with pytest.raises(SystemExit) as exit_info:
+        main([str(path)])
+
+    captured = capsys.readouterr()
+    assert exit_info.value.code == 2
+    assert "diagnostics are undefined for this chain" in captured.err
+    assert "Traceback" not in captured.err
+    assert not (tmp_path / "results").exists()
+
+
 def test_a_sampler_validation_error_is_reported_as_a_cli_error(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     path = write_config(tmp_path, step_size=0.0)
@@ -172,6 +210,27 @@ def test_an_unknown_setting_stops_before_sampling(tmp_path, monkeypatch, capsys)
     assert exit_info.value.code == 2
     assert "burnin" in captured.err
     assert not (tmp_path / "results").exists()
+
+
+def test_disabled_plots_remove_stale_outputs_without_touching_other_files(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    main([str(write_config(tmp_path, save_dashboard=True, save_corner=True))])
+
+    results = tmp_path / "results"
+    dashboard_path = results / "dashboard.png"
+    corner_path = results / "corner.png"
+    unrelated_path = results / "keep-me.txt"
+
+    assert dashboard_path.exists()
+    assert corner_path.exists()
+    unrelated_path.write_text("not managed by rwmcmc")
+
+    main([str(write_config(tmp_path, save_dashboard=False, save_corner=False))])
+
+    assert not dashboard_path.exists()
+    assert not corner_path.exists()
+    assert unrelated_path.read_text() == "not managed by rwmcmc"
 
 
 def test_the_metadata_describes_the_run(tmp_path, monkeypatch):

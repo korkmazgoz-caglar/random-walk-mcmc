@@ -27,11 +27,14 @@ def convert_2d(samples: np.ndarray) -> np.ndarray:
 def acceptance_rate(accepted: np.ndarray, burn_in: int = 0) -> float:
     """Fraction of proposals accepted, ignoring the first burn_in samples.
 
-    A low rate means the proposal steps are too large, a high rate means they
-    are too small. The optimal value is about 0.44 in one dimension and drops
-    towards 0.234 in high dimensions.
+    accepted[0] represents the starting state rather than a proposal, so it is
+    excluded even when burn_in is zero. A low rate means the proposal steps are
+    too large, a high rate means they are too small. The optimal value is about
+    0.44 in one dimension and drops towards 0.234 in high dimensions.
     """
-    return float(np.asarray(accepted)[burn_in:].mean())
+    accepted = np.asarray(accepted)
+    first_proposal = max(1, burn_in)
+    return float(accepted[first_proposal:].mean())
 
 
 def running_mean(samples: np.ndarray) -> np.ndarray:

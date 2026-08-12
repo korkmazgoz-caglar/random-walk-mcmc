@@ -9,9 +9,29 @@ from numpy.typing import ArrayLike
 
 
 def gaussian_1d_log_pdf(x: ArrayLike, mu: float = 0.0, sigma: float = 1.0) -> np.ndarray:
-    """Log of 1D Gaussian probability density function, unnormalized."""
-    x = np.asarray(x, dtype=float)
-    return -0.5 * ((x - mu) / sigma) ** 2
+    """Log of a 1D Gaussian probability density function, unnormalized.
+
+    sigma must be a finite, strictly positive real scalar.
+    """
+    if isinstance(sigma, (bool, np.bool_)):
+        raise TypeError("sigma must be a real scalar")
+
+    try:
+        sigma_array = np.asarray(sigma, dtype=float)
+    except (TypeError, ValueError) as exc:
+        raise TypeError("sigma must be a real scalar") from exc
+
+    if sigma_array.ndim != 0:
+        raise TypeError("sigma must be a real scalar")
+
+    sigma_value = float(sigma_array)
+    if not np.isfinite(sigma_value):
+        raise ValueError("sigma must be finite")
+    if sigma_value <= 0.0:
+        raise ValueError("sigma must be strictly positive")
+
+    x_array = np.asarray(x, dtype=float)
+    return -0.5 * ((x_array - mu) / sigma_value) ** 2
 
 
 def banana_log_pdf(x: ArrayLike, b: float = 0.03) -> np.ndarray:
