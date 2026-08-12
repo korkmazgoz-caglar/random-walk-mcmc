@@ -56,7 +56,7 @@ jobs:
 
       - name: Run the command line interface
         run: |
-          printf 'target: banana\nx0: [0.0, 0.0]\nn_samples: 500\nstep_size: [1.0, 1.0]\nburn_in: 50\nseed: 42\noutput_dir: smoke\nsave_dashboard: false\nsave_corner: false\n' > smoke.yaml
+          printf 'target: banana\nx0: [0.0, 3.0]\nn_samples: 500\nstep_size: [4.0, 2.0]\nburn_in: 50\nseed: 42\noutput_dir: smoke\nsave_dashboard: false\nsave_corner: false\n' > smoke.yaml
           rwmcmc-run smoke.yaml
           test -f smoke/samples.npy
           test -f smoke/accepted.npy

@@ -23,12 +23,12 @@ def banana_log_pdf(x: ArrayLike, b: float = 0.03) -> np.ndarray:
 
         x2 | x1 ~ N(100 * b - b * x1**2, 1).
 
-    Therefore, for ``x = [x1, x2]``,
+    Therefore, for x = [x1, x2],
 
         log p(x) = -x1**2 / 200 - 0.5 * (x2 + b * x1**2 - 100 * b)**2.
 
-    The function accepts one point with shape ``(2,)`` or a batch with shape
-    ``(..., 2)``.
+    The function accepts one point with shape (2,) or a batch with shape
+    (..., 2).
     """
     x_arr = np.asarray(x, dtype=float)
     if x_arr.ndim == 0 or x_arr.shape[-1] != 2:
