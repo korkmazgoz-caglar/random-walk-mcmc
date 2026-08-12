@@ -130,16 +130,19 @@ def test_ess_iid_close_to_n():
     assert 0.9 * n < ess[0] <= 1.1 * n
 
 
-def test_ess_ar1_matches_theory():
-    # AR(1) is known ESS ratio (1-phi)/(1+phi); generated loop-free with lfilter
+@pytest.mark.parametrize("phi", [-0.5, 0.9])
+def test_ess_ar1_matches_theory(phi):
+    # AR(1) has the known ESS ratio (1-phi)/(1+phi).
     from scipy.signal import lfilter
 
     rng = np.random.default_rng(4)
-    phi, n = 0.9, 50000
+    n = 50000
     x = lfilter([1.0], [1.0, -phi], rng.normal(size=n))
     ess = effective_sample_size(x)[0]
     theory = n * (1 - phi) / (1 + phi)
     assert 0.5 * theory < ess < 1.5 * theory
+    if phi < 0:
+        assert ess > n
 
 
 def test_corner_returns_dxd_grid():
