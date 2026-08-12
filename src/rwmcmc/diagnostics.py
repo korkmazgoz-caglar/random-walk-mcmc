@@ -8,20 +8,84 @@ accepted : (n_samples,) boolean array from the samplers.
 burn_in : number of leading samples to discard.
 """
 
+import numbers
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 
+def _validated_samples(samples: np.ndarray, min_samples: int = 1) -> np.ndarray:
+    """Return a finite chain with shape (n_samples, d)."""
+    try:
+        x = np.asarray(samples, dtype=float)
+    except (TypeError, ValueError) as exc:
+        raise TypeError("samples must be numeric") from exc
+
+    if x.ndim == 1:
+        x = x[:, None]
+    elif x.ndim != 2:
+        raise ValueError(f"samples must be a 1D or 2D array, got {x.ndim} dimensions")
+
+    if x.shape[0] < min_samples:
+        raise ValueError(f"samples must contain at least {min_samples} rows, got {x.shape[0]}")
+    if x.shape[1] == 0:
+        raise ValueError("samples must contain at least one dimension")
+    if not np.all(np.isfinite(x)):
+        raise ValueError("samples must contain only finite values")
+    return x
+
+
+def _validated_burn_in(burn_in: int, n_samples: int, min_remaining: int) -> int:
+    """Return a non-negative burn-in that leaves enough samples."""
+    if isinstance(burn_in, bool) or not isinstance(burn_in, numbers.Integral):
+        raise TypeError(f"burn_in must be an integer, got {type(burn_in).__name__}")
+    burn_in = int(burn_in)
+    if burn_in < 0:
+        raise ValueError(f"burn_in must not be negative, got {burn_in}")
+    remaining = n_samples - burn_in
+    if remaining < min_remaining:
+        raise ValueError(f"burn_in must leave at least {min_remaining} samples, got {remaining}")
+    return burn_in
+
+
+def _validated_accepted(accepted: np.ndarray, expected_length: int | None = None) -> np.ndarray:
+    """Return the sampler's one-dimensional boolean proposal decisions."""
+    values = np.asarray(accepted)
+    if values.ndim != 1:
+        raise ValueError(f"accepted must be a 1D array, got {values.ndim} dimensions")
+    if values.size < 2:
+        raise ValueError("accepted must contain the starting state and at least one proposal")
+    if values.dtype.kind != "b":
+        raise TypeError("accepted must contain boolean values")
+    if expected_length is not None and values.size != expected_length:
+        raise ValueError(
+            f"accepted must have the same length as samples ({expected_length}), got {values.size}"
+        )
+    return values
+
+
+def _validated_param_names(param_names: list[str] | None, dimension: int) -> list[str] | None:
+    """Return labels that match the chain dimension."""
+    if param_names is None:
+        return None
+    if not isinstance(param_names, (list, tuple)) or not all(
+        isinstance(name, str) for name in param_names
+    ):
+        raise TypeError("param_names must be a list of strings")
+    if len(param_names) != dimension:
+        raise ValueError(
+            f"param_names must have one name per dimension ({dimension}), got {len(param_names)}"
+        )
+    return list(param_names)
+
+
 def convert_2d(samples: np.ndarray) -> np.ndarray:
-    """Return the chain as a 2D array of shape (n_samples, d).
+    """Return a finite chain as a 2D array of shape (n_samples, d).
 
     A 1D chain becomes a single column, so the rest of the module can treat
     every chain the same way.
     """
-    samples = np.asarray(samples)
-    if samples.ndim == 1:
-        return samples[:, None]
-    return samples
+    return _validated_samples(samples)
 
 
 def acceptance_rate(accepted: np.ndarray, burn_in: int = 0) -> float:
@@ -32,9 +96,10 @@ def acceptance_rate(accepted: np.ndarray, burn_in: int = 0) -> float:
     too large, a high rate means they are too small. The optimal value is about
     0.44 in one dimension and drops towards 0.234 in high dimensions.
     """
-    accepted = np.asarray(accepted)
+    values = _validated_accepted(accepted)
+    burn_in = _validated_burn_in(burn_in, values.size, min_remaining=1)
     first_proposal = max(1, burn_in)
-    return float(accepted[first_proposal:].mean())
+    return float(values[first_proposal:].mean())
 
 
 def running_mean(samples: np.ndarray) -> np.ndarray:
@@ -56,24 +121,31 @@ def autocorrelation(samples: np.ndarray, max_lag: int | None = None) -> np.ndarr
 
     Raises
     ------
+    TypeError
+        If max_lag is not an integer or None.
     ValueError
-        If the chain has zero variance, so the correlation is undefined.
+        If the chain is invalid, has fewer than two rows or has zero variance,
+        or if max_lag is outside the available range.
     """
-    x = convert_2d(samples).astype(float)
+    x = _validated_samples(samples, min_samples=2)
     n, d = x.shape
     if max_lag is None:
         max_lag = min(n - 1, 200)
+    else:
+        if isinstance(max_lag, bool) or not isinstance(max_lag, numbers.Integral):
+            raise TypeError(f"max_lag must be an integer or None, got {type(max_lag).__name__}")
+        max_lag = int(max_lag)
+        if not 0 <= max_lag < n:
+            raise ValueError(f"max_lag must be between 0 and {n - 1}, got {max_lag}")
 
-    x -= x.mean(axis=0)  # Autocovariance is defined on deviations from the mean.
+    centered = x - x.mean(axis=0)
 
-    # Any length > 2*n avoids circular wrap-around; powers of two make the FFT fastest.
     nfft = int(2 ** np.ceil(np.log2(2 * n)))
-    f = np.fft.rfft(x, n=nfft, axis=0)
+    f = np.fft.rfft(centered, n=nfft, axis=0)
     acov = np.fft.irfft(f * np.conjugate(f), n=nfft, axis=0)[: max_lag + 1]
     if np.any(np.isclose(acov[0], 0.0)):
         raise ValueError("Autocorrelation is undefined because the chain has zero variance.")
-    norm_acov = acov / acov[0]
-    return norm_acov
+    return acov / acov[0]
 
 
 def effective_sample_size(samples: np.ndarray) -> np.ndarray:
@@ -83,18 +155,17 @@ def effective_sample_size(samples: np.ndarray) -> np.ndarray:
     (rho_2k + rho_2k+1) are accumulated while their sum stays positive. The
     result says how many independent samples the correlated chain is worth.
     """
-    x = convert_2d(samples=samples)
+    x = _validated_samples(samples, min_samples=2)
     n, d = x.shape
     rho = autocorrelation(x, max_lag=min(n - 1, 1000))
     ess = np.empty(d)
     for j in range(d):
         pair_sums = rho[1:-1:2, j] + rho[2::2, j]
-        # pairs: rho1+rho2, rho3+rho4, ...
         tau = 1.0
-        for p in pair_sums:
-            if p < 0:
+        for pair_sum in pair_sums:
+            if pair_sum < 0:
                 break
-            tau += 2.0 * p
+            tau += 2.0 * pair_sum
         ess[j] = n / tau
     return ess
 
@@ -108,14 +179,18 @@ def summary(samples: np.ndarray, accepted: np.ndarray, burn_in: int = 0) -> dict
         Keys n_samples and n_dim (int), acceptance_rate (float), and mean, std
         and ess (arrays of length d).
     """
-    x = convert_2d(samples=samples)[burn_in:]
+    x = _validated_samples(samples, min_samples=2)
+    values = _validated_accepted(accepted, expected_length=x.shape[0])
+    burn_in = _validated_burn_in(burn_in, x.shape[0], min_remaining=2)
+    retained = x[burn_in:]
+    first_proposal = max(1, burn_in)
     return {
-        "n_samples": int(x.shape[0]),
-        "n_dim": int(x.shape[1]),
-        "acceptance_rate": acceptance_rate(accepted, burn_in),
-        "mean": x.mean(axis=0),
-        "std": x.std(axis=0),
-        "ess": effective_sample_size(x),
+        "n_samples": int(retained.shape[0]),
+        "n_dim": int(retained.shape[1]),
+        "acceptance_rate": float(values[first_proposal:].mean()),
+        "mean": retained.mean(axis=0),
+        "std": retained.std(axis=0),
+        "ess": effective_sample_size(retained),
     }
 
 
@@ -144,9 +219,10 @@ def dashboard(
     -------
     matplotlib.figure.Figure
     """
-    x = convert_2d(samples)
+    x = _validated_samples(samples, min_samples=2)
     n, d = x.shape
-
+    burn_in = _validated_burn_in(burn_in, n, min_remaining=2)
+    param_names = _validated_param_names(param_names, d)
     if param_names is None:
         param_names = [f"x{j}" for j in range(d)] if d > 1 else ["x"]
 
@@ -221,10 +297,13 @@ def corner(
     ValueError
         If the chain has fewer than two dimensions.
     """
-    x = convert_2d(samples)[burn_in:]
+    x = _validated_samples(samples)
+    burn_in = _validated_burn_in(burn_in, x.shape[0], min_remaining=1)
+    x = x[burn_in:]
     n, d = x.shape
     if d < 2:
         raise ValueError("corner plot needs at least 2 dimensions")
+    param_names = _validated_param_names(param_names, d)
     if param_names is None:
         param_names = [f"x{j}" for j in range(d)]
 

@@ -144,6 +144,11 @@ def validate_run_settings(config: dict) -> None:
         raise ValueError(f"burn_in must not be negative, got {burn_in}")
     if burn_in >= n_samples:
         raise ValueError(f"burn_in must be smaller than n_samples ({n_samples}), got {burn_in}")
+    retained_samples = n_samples - burn_in
+    if retained_samples < 2:
+        raise ValueError(
+            f"burn_in must leave at least 2 samples for CLI diagnostics, got {retained_samples}"
+        )
 
     for flag in ("save_dashboard", "save_corner"):
         if flag in config and not isinstance(config[flag], bool):

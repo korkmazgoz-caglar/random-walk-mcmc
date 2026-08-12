@@ -127,6 +127,25 @@ def test_a_one_sample_run_is_refused_before_sampling(tmp_path, monkeypatch, caps
     assert not (tmp_path / "results").exists()
 
 
+def test_burn_in_must_leave_two_samples_before_sampling(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("sampler must not run when too few samples remain after burn-in")
+
+    monkeypatch.setattr("rwmcmc.cli.random_walk_metropolis_hastings", fail_if_called)
+    path = write_config(tmp_path, n_samples=2, burn_in=1)
+
+    with pytest.raises(SystemExit) as exit_info:
+        main([str(path)])
+
+    captured = capsys.readouterr()
+    assert exit_info.value.code == 2
+    assert "burn_in must leave at least 2 samples for CLI diagnostics" in captured.err
+    assert "Traceback" not in captured.err
+    assert not (tmp_path / "results").exists()
+
+
 def test_a_diagnostic_error_is_reported_as_a_cli_error(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
 
