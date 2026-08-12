@@ -44,6 +44,24 @@ def test_gaussian_supports_batched_input():
     )
 
 
+@pytest.mark.parametrize(
+    "sigma",
+    [0.0, -1.0, np.nan, np.inf, -np.inf],
+)
+def test_gaussian_rejects_nonpositive_or_nonfinite_sigma(sigma):
+    with pytest.raises(ValueError, match="sigma"):
+        gaussian_1d_log_pdf(0.0, sigma=sigma)
+
+
+@pytest.mark.parametrize(
+    "sigma",
+    [True, [1.0], "wide"],
+)
+def test_gaussian_rejects_non_scalar_or_non_numeric_sigma(sigma):
+    with pytest.raises(TypeError, match="sigma must be a real scalar"):
+        gaussian_1d_log_pdf(0.0, sigma=sigma)
+
+
 def test_banana_default_mode_has_zero_log_density():
     assert banana_log_pdf([0.0, 3.0]) == pytest.approx(0.0)
 
