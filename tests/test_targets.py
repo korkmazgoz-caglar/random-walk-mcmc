@@ -3,7 +3,45 @@
 import numpy as np
 import pytest
 
-from rwmcmc import banana_log_pdf
+from rwmcmc import banana_log_pdf, gaussian_1d_log_pdf
+
+
+def test_gaussian_default_parameters():
+    points = np.array([-1.0, 0.0, 1.0])
+
+    np.testing.assert_allclose(
+        gaussian_1d_log_pdf(points),
+        [-0.5, 0.0, -0.5],
+    )
+
+
+def test_gaussian_respects_mu_and_sigma():
+    points = np.array([1.0, 3.0, 5.0])
+
+    np.testing.assert_allclose(
+        gaussian_1d_log_pdf(points, mu=3.0, sigma=2.0),
+        [-0.5, 0.0, -0.5],
+    )
+
+
+def test_gaussian_supports_batched_input():
+    points = np.array(
+        [
+            [1.0, 3.0],
+            [5.0, 7.0],
+        ]
+    )
+
+    result = gaussian_1d_log_pdf(points, mu=3.0, sigma=2.0)
+
+    assert result.shape == (2, 2)
+    np.testing.assert_allclose(
+        result,
+        [
+            [-0.5, 0.0],
+            [-0.5, -2.0],
+        ],
+    )
 
 
 def test_banana_default_mode_has_zero_log_density():
