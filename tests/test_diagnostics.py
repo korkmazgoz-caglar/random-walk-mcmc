@@ -31,6 +31,69 @@ def test_acceptance_rate_does_not_count_the_starting_state_as_a_rejection():
     assert acceptance_rate(accepted) == 1.0
 
 
+@pytest.mark.parametrize(
+    "samples",
+    [[], np.empty((3, 0)), np.ones((2, 2, 2)), [0.0, np.nan]],
+)
+def test_diagnostics_reject_invalid_sample_arrays(samples):
+    with pytest.raises(ValueError):
+        running_mean(samples)
+
+
+def test_diagnostics_reject_non_numeric_samples():
+    with pytest.raises(TypeError, match="samples must be numeric"):
+        running_mean(["not-a-number"])
+
+
+@pytest.mark.parametrize(
+    "accepted, exception",
+    [
+        ([False], ValueError),
+        ([[False, True]], ValueError),
+        ([0, 1], TypeError),
+    ],
+)
+def test_acceptance_rate_rejects_invalid_decision_arrays(accepted, exception):
+    with pytest.raises(exception):
+        acceptance_rate(accepted)
+
+
+@pytest.mark.parametrize("burn_in", [-1, 3, 1.5, True])
+def test_summary_rejects_invalid_burn_in(burn_in):
+    samples = np.array([0.0, 1.0, 2.0, 3.0])
+    accepted = np.array([False, True, True, True])
+    with pytest.raises((TypeError, ValueError), match="burn_in"):
+        summary(samples, accepted, burn_in=burn_in)
+
+
+def test_summary_requires_matching_sample_and_acceptance_lengths():
+    with pytest.raises(ValueError, match="same length"):
+        summary(np.arange(4.0), np.array([False, True, True]))
+
+
+@pytest.mark.parametrize("max_lag", [-1, 4, 1.5, True])
+def test_autocorrelation_rejects_invalid_max_lag(max_lag):
+    with pytest.raises((TypeError, ValueError), match="max_lag"):
+        autocorrelation(np.arange(4.0), max_lag=max_lag)
+
+
+@pytest.mark.parametrize("param_names", [["only-one"], ["x", 2]])
+def test_dashboard_rejects_invalid_parameter_names(param_names):
+    samples = np.arange(20.0).reshape(10, 2)
+    accepted = np.array([False] + [True] * 9)
+    with pytest.raises((TypeError, ValueError), match="param_names"):
+        dashboard(samples, accepted, param_names=param_names)
+
+
+def test_autocorrelation_does_not_modify_the_input_chain():
+    samples = np.array([1.0, 2.0, 4.0, 8.0])
+    original = samples.copy()
+
+    autocorrelation(samples)
+
+    np.testing.assert_array_equal(samples, original)
+
+
 def test_running_mean_last_value_equals_mean():
     rng = np.random.default_rng(0)
     x = rng.normal(size=1000)
