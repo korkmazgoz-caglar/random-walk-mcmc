@@ -24,7 +24,7 @@ Because MCMC samples are *correlated* by construction, raw chains must never be 
 - Reusable `RandomWalkMetropolisHastings` class holding the target, the proposal scale, and the generator; the functions above are thin wrappers over it
 - Input validation in the sampler and in the CLI: a wrong argument or a wrong config entry is refused with a clear message before any sampling starts
 - Symmetric Gaussian proposal, separated into its own module (`proposals.py`)
-- Example target distributions: standard Gaussian and the banana-shaped Rosenbrock density (`targets.py`)
+- Example target distributions: standard Gaussian and a two-dimensional banana-shaped density (`targets.py`)
 - Diagnostics: acceptance rate, running mean, FFT-based autocorrelation, effective sample size following Geyer's initial positive sequence (`diagnostics.py`)
 - One-figure visual dashboard: trace, histogram, running mean, and autocorrelation panels per dimension, and a summary line
 - Corner plot for multi-dimensional cases
@@ -50,8 +50,8 @@ Optional extras:
 
 | Extra | Installs | Purpose |
 |---|---|---|
-| `[notebooks]` | jupyter, seaborn, etc | running the example notebooks |
-| `[dev]` | pytest, ruff | running the test suite, formatting and linting |
+| `[notebooks]` | jupyter, seaborn, scipy, etc | running the example notebooks |
+| `[dev]` | pytest, ruff, scipy | running the test suite, formatting and linting |
 
 ## Quickstart
 
@@ -118,9 +118,10 @@ Reproducibility of this package:
 
 - **The seed is never hard-coded.** Every sampler takes an explicit `rng` argument; the CLI takes a `seed` entry in the config file.
 - **The user chooses.** Set `seed: 42` for a deterministic run, or `seed: null` to let the package draw a fresh seed.
-- **Nothing is lost.** Even with `seed: null`, the drawn seed is written to `run_metadata.yaml` (`resolved_seed`), together with the complete configuration, the package and NumPy versions, the summary statistics, and a timestamp. Any run — including a "random" one — can therefore be replayed exactly by feeding the recorded seed back into the config.
+- **A typo is not accepted silently.** The CLI refuses any setting it does not know, so `burnin: 500` fails with a message instead of running with the default and recording a value that was never applied.
+- **Nothing is lost.** Every run writes a `run_metadata.yaml` holding the requested configuration next to the effective one with all defaults filled in, the seed that was actually used together with the NumPy bit generator, the package version and the source revision it came from (when available), the Python, NumPy, Matplotlib, PyYAML, operating system and architecture it ran on, the summary statistics, and SHA-256 digests of the `.npy` outputs. Any run — including a "random" one — can therefore be replayed exactly by feeding the recorded seed back into the config, in the same source revision and with the same library versions the metadata records. The metadata makes a difference in that environment visible; it does not rebuild the environment for you.
 
-The test suite verifies bit-for-bit reproducibility: the same seed always produces the identical chain.
+The digests let you check a replay without keeping the old files: compare the `sha256` entries under `outputs` in the two metadata files. They are taken from the files on disk, so they certify that the two runs wrote byte for byte the same file. That is a narrower claim than saying two different machines would compute the same numbers. The test suite checks the first: the same seed produces identical files, and a drawn seed replayed from its own metadata reproduces the run exactly.
 
 ## Diagnostics in one paragraph
 
