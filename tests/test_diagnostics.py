@@ -22,8 +22,13 @@ from rwmcmc import (
 
 def test_acceptance_rate_with_burn_in():
     accepted = np.array([False] * 50 + [True] * 50)
-    assert acceptance_rate(accepted) == 0.5
+    assert acceptance_rate(accepted) == pytest.approx(50 / 99)
     assert acceptance_rate(accepted, burn_in=50) == 1.0
+
+
+def test_acceptance_rate_does_not_count_the_starting_state_as_a_rejection():
+    accepted = np.array([False, True])
+    assert acceptance_rate(accepted) == 1.0
 
 
 def test_running_mean_last_value_equals_mean():
