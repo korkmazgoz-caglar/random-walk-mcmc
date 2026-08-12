@@ -8,7 +8,7 @@ version = "0.1.1"
 description = "Lightweight Random-Walk Metropolis-Hastings sampler with diagnostics and visualization"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Çağlar Korkmazgöz", email = "caglar.korkmazgoez@rwth-aachen.de" }]
+authors = [{ name = "Enes Çağlar Korkmazgöz", email = "caglar.korkmazgoez@rwth-aachen.de" }]
 license = { text = "MIT" }
 keywords = ["mcmc", "metropolis-hastings", "bayesian", "sampling", "diagnostics"]
 classifiers = [

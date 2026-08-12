@@ -33,3 +33,31 @@ jobs:
 
       - name: Run tests
         run: python -m pytest tests/ -v
+
+  minimal-install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install with the runtime dependencies only
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+
+      - name: Check that no development dependency crept into the package
+        run: |
+          python -c "import importlib.util; assert importlib.util.find_spec('scipy') is None, 'scipy is not a runtime dependency'"
+          python -c "import rwmcmc; print(rwmcmc.__version__)"
+
+      - name: Run the command line interface
+        run: |
+          printf 'target: banana\nx0: [0.0, 0.0]\nn_samples: 500\nstep_size: [1.0, 1.0]\nburn_in: 50\nseed: 42\noutput_dir: smoke\nsave_dashboard: false\nsave_corner: false\n' > smoke.yaml
+          rwmcmc-run smoke.yaml
+          test -f smoke/samples.npy
+          test -f smoke/accepted.npy
+          test -f smoke/run_metadata.yaml
