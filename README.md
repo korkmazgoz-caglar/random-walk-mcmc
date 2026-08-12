@@ -261,7 +261,7 @@ ruff check .            # lint
 python -m pytest -v     # run the test suite
 ```
 
-Formatting and linting use [ruff](https://docs.astral.sh/ruff/), configured in `pyproject.toml`: line length 100, rule sets `E` (pycodestyle), `F` (pyflakes) and `I` (import order), with `tutorials/` and `*.md` excluded. GitHub Actions checks formatting, linting, and tests on pushes to `main` and on every pull request, using Python 3.10 and 3.13.
+Formatting and linting use [ruff](https://docs.astral.sh/ruff/), configured in `pyproject.toml`: line length 100, rule sets `E` (pycodestyle), `F` (pyflakes) and `I` (import order), with `tutorials/` and `*.md` excluded. GitHub Actions checks formatting, linting, and tests on pushes to `main` and on every pull request, using Python 3.10, 3.13, and 3.14.
 
 The suite covers output shapes, seed reproducibility, statistical correctness of the sampler against a known target, the diagnostics against analytical results (i.i.d. limits and the AR(1) process with known ESS ratio), and the errors raised for invalid input on both the Python API and command line side.
 
