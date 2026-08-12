@@ -93,9 +93,9 @@ class RandomWalkMetropolisHastings:
     >>> import numpy as np
     >>> from rwmcmc import banana_log_pdf
     >>> sampler = RandomWalkMetropolisHastings(
-    ...     banana_log_pdf, step_size=1.0, rng=np.random.default_rng(42)
+    ...     banana_log_pdf, step_size=[4.0, 2.0], rng=np.random.default_rng(42)
     ... )
-    >>> samples, accepted = sampler.sample(x0=[0.0, 0.0], n_samples=1000)
+    >>> samples, accepted = sampler.sample(x0=[0.0, 3.0], n_samples=1000)
     >>> samples.shape
     (1000, 2)
     """

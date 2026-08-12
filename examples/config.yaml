@@ -3,9 +3,9 @@
 # Use: rwmcmc-run examples/config.yaml
 
 target: banana          # gaussian_1d | banana
-x0: [0.0, 0.0]          # initial state (scalar or list matching target dimension)
+x0: [0.0, 3.0]          # initial state (scalar or list matching target dimension)
 n_samples: 8000
-step_size: [1.0, 1.0]   # scalar or per-dimension list
+step_size: [4.0, 2.0]   # scalar or per-dimension list
 burn_in: 500
 
 # Reproducibility: set an integer for a deterministic run.

@@ -36,7 +36,7 @@ rwmcmc-run my_run.yaml
 You should see something like:
 
 ```
-run complete: seed=42 acceptance=54.85%
+run complete: seed=42 acceptance=38.00%
 outputs written to /path/to/results
 ```
 
@@ -44,9 +44,9 @@ outputs written to /path/to/results
 
 ```yaml
 target: banana          # which log-density to sample: gaussian_1d | banana
-x0: [0.0, 0.0]          # where the chain starts; dimension must match the target
+x0: [0.0, 3.0]          # where the chain starts; dimension must match the target
 n_samples: 8000         # chain length
-step_size: [1.0, 1.0]   # proposal std; scalar or one value per dimension
+step_size: [4.0, 2.0]   # proposal std; scalar or one value per dimension
 burn_in: 500            # leading samples excluded from statistics
 seed: 42                # integer -> deterministic run; null -> fresh random seed
 output_dir: results     # where output files are written
@@ -133,7 +133,7 @@ For multi-dimensional targets, the pairwise joint structure is one call away:
 
 ```python
 samples, accepted = random_walk_metropolis_hastings(
-    banana_log_pdf, x0=[0.0, 0.0], n_samples=10000, step_size=[1.0, 1.0], rng=rng
+    banana_log_pdf, x0=[0.0, 3.0], n_samples=10000, step_size=[4.0, 2.0], rng=rng
 )
 fig = corner(samples, burn_in=1000, param_names=["x1", "x2"])
 ```
