@@ -26,10 +26,21 @@ python -c "import rwmcmc; print(rwmcmc.__version__)"
 
 ## 2. How do I run my first sampling from the command line?
 
-Never edit `examples/config.yaml` in place, copy it and make it yours:
+If you cloned the repository, copy the example configuration so every experiment keeps its own complete record:
 
 ```bash
 cp examples/config.yaml my_run.yaml
+```
+
+A pip installation contains the Python package and the `rwmcmc-run` command, but it does not create the repository's `examples/` directory in your working directory. For a pip-only installation, download the same example configuration instead:
+
+```bash
+curl -L https://raw.githubusercontent.com/korkmazgoz-caglar/random-walk-mcmc/main/examples/config.yaml -o my_run.yaml
+```
+
+Alternatively, create `my_run.yaml` manually using the complete example in the next section. Then run it from the directory containing the file:
+
+```bash
 rwmcmc-run my_run.yaml
 ```
 
@@ -45,9 +56,9 @@ outputs written to /path/to/results
 ```yaml
 target: banana          # which log-density to sample: gaussian_1d | banana
 x0: [0.0, 3.0]          # where the chain starts; dimension must match the target
-n_samples: 8000         # chain length
+n_samples: 50000         # chain length
 step_size: [4.0, 2.0]   # proposal std; scalar or one value per dimension
-burn_in: 500            # leading samples excluded from statistics
+burn_in: 5000            # leading samples excluded from statistics
 seed: 42                # integer -> deterministic run; null -> fresh random seed
 output_dir: results     # where output files are written
 save_dashboard: true    # also write dashboard.png
@@ -59,7 +70,7 @@ The documented settings are validated before the sampling loop starts: `burn_in`
 
 ```
 usage: rwmcmc-run [-h] config
-rwmcmc-run: error: burn_in must be smaller than n_samples (8000), got 9000
+rwmcmc-run: error: burn_in must be smaller than n_samples (50000), got 60000
 ```
 
 The command then exits with status 2 and writes nothing: no output directory, no samples, no metadata.
@@ -133,9 +144,9 @@ For multi-dimensional targets, the pairwise joint structure is one call away:
 
 ```python
 samples, accepted = random_walk_metropolis_hastings(
-    banana_log_pdf, x0=[0.0, 3.0], n_samples=10000, step_size=[4.0, 2.0], rng=rng
+    banana_log_pdf, x0=[0.0, 3.0], n_samples=50000, step_size=[4.0, 2.0], rng=rng
 )
-fig = corner(samples, burn_in=1000, param_names=["x1", "x2"])
+fig = corner(samples, burn_in=5000, param_names=["x1", "x2"])
 ```
 
 To sample your **own** target, pass any function that returns the log-density (up to an additive constant):

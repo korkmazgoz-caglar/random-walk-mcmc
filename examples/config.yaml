@@ -4,9 +4,9 @@
 
 target: banana          # gaussian_1d | banana
 x0: [0.0, 3.0]          # initial state (scalar or list matching target dimension)
-n_samples: 8000
+n_samples: 50000
 step_size: [4.0, 2.0]   # scalar or per-dimension list
-burn_in: 500
+burn_in: 5000
 
 # Reproducibility: set an integer for a deterministic run.
 # Set to null to let rwmcmc draw a fresh seed; the drawn seed is still
