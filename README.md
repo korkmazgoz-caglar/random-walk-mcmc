@@ -63,11 +63,11 @@ from rwmcmc import random_walk_metropolis_hastings, banana_log_pdf, dashboard, s
 
 rng = np.random.default_rng(42)  # seed -> reproducible chain
 samples, accepted = random_walk_metropolis_hastings(
-    banana_log_pdf, x0=[0.0, 3.0], n_samples=8000, step_size=[4.0, 2.0], rng=rng
+    banana_log_pdf, x0=[0.0, 3.0], n_samples=50000, step_size=[4.0, 2.0], rng=rng
 )
 
-print(summary(samples, accepted, burn_in=500))
-fig = dashboard(samples, accepted, burn_in=500, param_names=["x1", "x2"])
+print(summary(samples, accepted, burn_in=5000))
+fig = dashboard(samples, accepted, burn_in=5000, param_names=["x1", "x2"])
 fig.savefig("dashboard.png")
 ```
 
@@ -87,18 +87,27 @@ sampler = RandomWalkMetropolisHastings(
 )
 samples, accepted = sampler.sample(
     x0=[0.0, 3.0],
-    n_samples=8000,
+    n_samples=50000,
 )
 ```
 
 ### Command line
 
-Copy the example configuration and adapt it:
+If you cloned the repository, copy the tracked example and run it:
 
 ```bash
 cp examples/config.yaml my_run.yaml
 rwmcmc-run my_run.yaml
 ```
+
+For a pip-only installation, the repository's `examples/` directory is not created in your working directory. Download the example first, then run it:
+
+```bash
+curl -L https://raw.githubusercontent.com/korkmazgoz-caglar/random-walk-mcmc/main/examples/config.yaml -o my_run.yaml
+rwmcmc-run my_run.yaml
+```
+
+You can also create `my_run.yaml` manually; the complete configuration is documented in [HOWTO.md](HOWTO.md).
 
 This writes the following files into the configured output directory:
 
