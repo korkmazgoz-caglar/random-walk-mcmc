@@ -360,6 +360,18 @@ def main(argv: list[str] | None = None) -> None:
 
     out = Path(config.get("output_dir", "results"))
     out.mkdir(parents=True, exist_ok=True)
+
+    # A run directory may be reused. Remove only optional outputs that the
+    # current configuration disables, so an image from an earlier run cannot
+    # be mistaken for an output of the current one.
+    optional_outputs = {
+        "dashboard.png": config.get("save_dashboard", True),
+        "corner.png": config.get("save_corner", False),
+    }
+    for name, enabled in optional_outputs.items():
+        if not enabled:
+            (out / name).unlink(missing_ok=True)
+
     np.save(out / "samples.npy", samples)
     np.save(out / "accepted.npy", accepted)
 

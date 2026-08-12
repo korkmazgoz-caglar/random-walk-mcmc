@@ -174,6 +174,27 @@ def test_an_unknown_setting_stops_before_sampling(tmp_path, monkeypatch, capsys)
     assert not (tmp_path / "results").exists()
 
 
+def test_disabled_plots_remove_stale_outputs_without_touching_other_files(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    main([str(write_config(tmp_path, save_dashboard=True, save_corner=True))])
+
+    results = tmp_path / "results"
+    dashboard_path = results / "dashboard.png"
+    corner_path = results / "corner.png"
+    unrelated_path = results / "keep-me.txt"
+
+    assert dashboard_path.exists()
+    assert corner_path.exists()
+    unrelated_path.write_text("not managed by rwmcmc")
+
+    main([str(write_config(tmp_path, save_dashboard=False, save_corner=False))])
+
+    assert not dashboard_path.exists()
+    assert not corner_path.exists()
+    assert unrelated_path.read_text() == "not managed by rwmcmc"
+
+
 def test_the_metadata_describes_the_run(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     main([str(write_config(tmp_path, save_dashboard=False, save_corner=False))])
