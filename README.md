@@ -306,6 +306,8 @@ CITATION.cff       citation metadata
 - A. Gelman et al., *Bayesian Data Analysis*, 3rd ed., Ch. 11. https://sites.stat.columbia.edu/gelman/book/
 - Stan Reference Manual, *Effective Sample Size*. https://mc-stan.org/docs/2_21/reference-manual/effective-sample-size-section.html
 
+- T. Beuzen and T. Timbers, *Python Packages*. https://py-pkgs.org/welcome
+
 ## Citation
 
 See [CITATION.cff](CITATION.cff). Licensed under the [MIT License](LICENSE).
