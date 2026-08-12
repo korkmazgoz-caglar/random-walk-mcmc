@@ -152,21 +152,23 @@ def effective_sample_size(samples: np.ndarray) -> np.ndarray:
     """Effective sample size per dimension.
 
     Uses Geyer's initial positive sequence: consecutive autocorrelation pairs
-    (rho_2k + rho_2k+1) are accumulated while their sum stays positive. The
-    result says how many independent samples the correlated chain is worth.
+    (rho_2k + rho_2k+1), starting with rho_0 + rho_1, are accumulated while
+    their sum stays positive. Negatively correlated chains can have an
+    effective sample size larger than the number of draws.
     """
     x = _validated_samples(samples, min_samples=2)
     n, d = x.shape
     rho = autocorrelation(x, max_lag=min(n - 1, 1000))
+    paired_length = rho.shape[0] - rho.shape[0] % 2
     ess = np.empty(d)
     for j in range(d):
-        pair_sums = rho[1:-1:2, j] + rho[2::2, j]
-        tau = 1.0
+        pair_sums = rho[:paired_length, j].reshape(-1, 2).sum(axis=1)
+        tau = -1.0
         for pair_sum in pair_sums:
-            if pair_sum < 0:
+            if pair_sum <= 0:
                 break
             tau += 2.0 * pair_sum
-        ess[j] = n / tau
+        ess[j] = np.inf if tau <= 0 else n / tau
     return ess
 
 

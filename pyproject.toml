@@ -1,19 +1,19 @@
 [build-system]
-requires = ["setuptools>=64", "wheel"]
+requires = ["setuptools>=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rwmcmc"
-version = "0.2.1"
+version = "0.2.2"
 description = "Lightweight Random-Walk Metropolis-Hastings sampler with diagnostics and visualization"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Enes Çağlar Korkmazgöz", email = "caglar.korkmazgoez@rwth-aachen.de" }]
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["mcmc", "metropolis-hastings", "bayesian", "sampling", "diagnostics"]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
 ]
 dependencies = [
     "numpy>=1.26",

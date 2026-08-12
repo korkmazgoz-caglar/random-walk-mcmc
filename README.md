@@ -39,12 +39,12 @@ package and its dependencies separate from other projects. On Linux, macOS, or W
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install "git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.1"
+python -m pip install "git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.2"
 ```
 
 On Windows PowerShell, create and activate the environment with `py -m venv .venv` and
 `.\.venv\Scripts\Activate.ps1`, then use the same `python -m pip` installation command.
-Pinning `v0.2.1` makes a later installation select the same released source.
+Pinning `v0.2.2` makes a later installation select the same released source.
 
 For development (editable install, from a local clone):
 
@@ -144,7 +144,7 @@ your working directory. The command below downloads only the released example
 configuration into the current directory; run it afterwards:
 
 ```bash
-curl -L https://raw.githubusercontent.com/korkmazgoz-caglar/random-walk-mcmc/v0.2.1/examples/config.yaml -o my_run.yaml
+curl -L https://raw.githubusercontent.com/korkmazgoz-caglar/random-walk-mcmc/v0.2.2/examples/config.yaml -o my_run.yaml
 rwmcmc-run my_run.yaml
 ```
 
@@ -189,6 +189,13 @@ the following files into the configured output directory:
 | `run_metadata.yaml` | full record of the run (see below) |
 
 
+### Example output
+
+The generated dashboard combines trace plots, marginal distributions, running means,
+and autocorrelation diagnostics in one figure:
+
+![RWMCMC trace, histogram, running-mean, and autocorrelation diagnostics](assets/diagnostics-dashboard.png)
+
 ## Reproducibility
 
 Reproducibility of this package:
@@ -222,6 +229,14 @@ For multi-dimensional runs, `corner.png` complements the per-parameter dashboard
 pairwise joint structure, including correlations and nonlinear shapes such as the banana
 target's curved ridge.
 
+## Tutorial notebooks
+
+The repository includes six illustrative notebooks under `tutorials/`. For example,
+`03_banana_sampling.ipynb` visualizes how samples follow the curved Haario banana target;
+this combined density-and-samples figure is produced by the notebook rather than by the CLI:
+
+![Notebook visualization of samples following the curved Haario banana target](assets/banana-sampling.png)
+
 ## Use in mcmc-bench
 
 This package is consumed by the Nextflow benchmarking pipeline [mcmc-bench](https://github.com/thealanjason/mcmc-bench), where it is installed via pip from this repository and compared against `emcee`, `dynesty`, `Slice`, and `SMC` on a surrogate-model calibration task. This demonstrates the package working as an installable dependency in an independent project.
@@ -230,7 +245,7 @@ Another project can install a specific release through its dependency file using
 example:
 
 ```text
-git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.1
+git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.2
 ```
 
 Pinning a tag or commit prevents an environment rebuild from silently selecting a newer
@@ -261,7 +276,7 @@ ruff check .            # lint
 python -m pytest -v     # run the test suite
 ```
 
-Formatting and linting use [ruff](https://docs.astral.sh/ruff/), configured in `pyproject.toml`: line length 100, rule sets `E` (pycodestyle), `F` (pyflakes) and `I` (import order), with `tutorials/` and `*.md` excluded. GitHub Actions checks formatting, linting, and tests on pushes to `main` and on every pull request, using Python 3.10 and 3.13.
+Formatting and linting use [ruff](https://docs.astral.sh/ruff/), configured in `pyproject.toml`: line length 100, rule sets `E` (pycodestyle), `F` (pyflakes) and `I` (import order), with `tutorials/` and `*.md` excluded. GitHub Actions checks formatting, linting, and tests on pushes to `main` and on every pull request, using Python 3.10, 3.13, and 3.14.
 
 The suite covers output shapes, seed reproducibility, statistical correctness of the sampler against a known target, the diagnostics against analytical results (i.i.d. limits and the AR(1) process with known ESS ratio), and the errors raised for invalid input on both the Python API and command line side.
 
@@ -276,6 +291,7 @@ src/rwmcmc/
   diagnostics.py   statistics + visual dashboard
   cli.py           rwmcmc-run entry point
 tests/             pytest suite
+assets/            figures displayed in the README
 tutorials/         example notebooks (01-06) and input data
 examples/          example run configuration
 .github/workflows/ continuous integration: lint and tests

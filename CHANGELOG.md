@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-08-12
+
+### Changed
+
+- Added a generated diagnostic dashboard and a clearly labelled notebook visualization
+  to the README.
+- Modernized the package license metadata to use an SPDX expression and include the
+  license file in built distributions.
+- Added continuous integration testing on Python 3.14 and moved the minimal-install
+  smoke test to Python 3.14.
+
+### Fixed
+
+- Corrected the effective sample size estimator to follow Geyer's initial positive
+  sequence for both positively and negatively correlated chains.
+
 ## [0.2.1] - 2026-08-12
 
 ### Added
@@ -74,7 +90,8 @@ All notable changes to this project are documented in this file.
 - Initial release with Random-Walk Metropolis-Hastings sampling, diagnostics,
   visualization, example targets, and a reproducible command-line interface.
 
-[Unreleased]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.1.0...v0.1.1
