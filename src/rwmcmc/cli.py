@@ -125,6 +125,9 @@ def validate_run_settings(config: dict) -> None:
         If a setting has an impossible value.
     """
     n_samples = _as_positive_int(config["n_samples"], "n_samples")
+    if n_samples < 2:
+        raise ValueError(f"n_samples must be at least 2 for CLI diagnostics, got {n_samples}")
+
     dimension = _as_1d_float(config["x0"], "x0").size
 
     seed = config.get("seed")
@@ -356,7 +359,10 @@ def main(argv: list[str] | None = None) -> None:
         parser.error(str(exc))
 
     burn_in = config.get("burn_in", 0)
-    stats = summary(samples, accepted, burn_in=burn_in)
+    try:
+        stats = summary(samples, accepted, burn_in=burn_in)
+    except (TypeError, ValueError) as exc:
+        parser.error(str(exc))
 
     out = Path(config.get("output_dir", "results"))
     out.mkdir(parents=True, exist_ok=True)

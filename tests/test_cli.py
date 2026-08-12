@@ -108,6 +108,44 @@ def test_a_bad_configuration_stops_before_sampling(tmp_path, monkeypatch, capsys
     assert not (tmp_path / "results").exists()
 
 
+def test_a_one_sample_run_is_refused_before_sampling(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+
+    def fail_if_called(*args, **kwargs):
+        pytest.fail("sampler must not run when the CLI cannot compute diagnostics")
+
+    monkeypatch.setattr("rwmcmc.cli.random_walk_metropolis_hastings", fail_if_called)
+    path = write_config(tmp_path, n_samples=1, burn_in=0)
+
+    with pytest.raises(SystemExit) as exit_info:
+        main([str(path)])
+
+    captured = capsys.readouterr()
+    assert exit_info.value.code == 2
+    assert "n_samples must be at least 2 for CLI diagnostics" in captured.err
+    assert "Traceback" not in captured.err
+    assert not (tmp_path / "results").exists()
+
+
+def test_a_diagnostic_error_is_reported_as_a_cli_error(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+
+    def fail_diagnostics(*args, **kwargs):
+        raise ValueError("diagnostics are undefined for this chain")
+
+    monkeypatch.setattr("rwmcmc.cli.summary", fail_diagnostics)
+    path = write_config(tmp_path)
+
+    with pytest.raises(SystemExit) as exit_info:
+        main([str(path)])
+
+    captured = capsys.readouterr()
+    assert exit_info.value.code == 2
+    assert "diagnostics are undefined for this chain" in captured.err
+    assert "Traceback" not in captured.err
+    assert not (tmp_path / "results").exists()
+
+
 def test_a_sampler_validation_error_is_reported_as_a_cli_error(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     path = write_config(tmp_path, step_size=0.0)
