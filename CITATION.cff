@@ -6,7 +6,7 @@ authors:
   - family-names: "Korkmazgöz"
     given-names: "Enes Çağlar"
     affiliation: "RWTH Aachen University"
-version: 0.2.0
+version: 0.2.1
 date-released: 2026-08-12
 url: "https://github.com/korkmazgoz-caglar/random-walk-mcmc"
 license: MIT

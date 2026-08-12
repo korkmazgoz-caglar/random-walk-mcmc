@@ -4,10 +4,19 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-08-12
+
+### Added
+
+- Public diagnostic functions validate sample arrays, acceptance decisions, burn-in,
+  autocorrelation lag, and parameter labels with clear errors.
+
 ### Changed
 
 - Consolidated installation, configuration, API, diagnostics, and troubleshooting guidance
   in the README and removed the overlapping HOWTO document.
+- Pinned user installation and example-configuration instructions to release `v0.2.1` and
+  documented isolated virtual-environment setup.
 - Updated tutorial notebooks to use the public acceptance-rate diagnostic.
 
 ### Fixed
@@ -15,8 +24,9 @@ All notable changes to this project are documented in this file.
 - Source provenance now prefers the revision recorded by a VCS installation and no longer
   reports an unrelated repository surrounding the active environment.
 - Reusing an output directory removes stale optional plots that the new run disables.
-- CLI configurations with fewer than two samples are rejected before sampling, and
-  diagnostic failures are reported as command-line errors instead of tracebacks.
+- CLI configurations with fewer than two total samples or fewer than two retained samples
+  after burn-in are rejected before sampling, and diagnostic failures are reported as
+  command-line errors instead of tracebacks.
 - Acceptance-rate calculations exclude the initial chain state, which is not a proposal.
 - The Gaussian example target rejects non-scalar, non-finite, or non-positive standard
   deviations.
@@ -64,7 +74,8 @@ All notable changes to this project are documented in this file.
 - Initial release with Random-Walk Metropolis-Hastings sampling, diagnostics,
   visualization, example targets, and a reproducible command-line interface.
 
-[Unreleased]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/korkmazgoz-caglar/random-walk-mcmc/releases/tag/v0.1.0
