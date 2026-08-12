@@ -32,25 +32,34 @@ Because MCMC samples are *correlated* by construction, raw chains must never be 
 
 ## Installation
 
-From GitHub:
+Python 3.10 or newer and Git are required. An isolated virtual environment keeps this
+package and its dependencies separate from other projects. On Linux, macOS, or WSL:
 
 ```bash
-pip install git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install "git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.1"
 ```
+
+On Windows PowerShell, create and activate the environment with `py -m venv .venv` and
+`.\.venv\Scripts\Activate.ps1`, then use the same `python -m pip` installation command.
+Pinning `v0.2.1` makes a later installation select the same released source.
 
 For development (editable install, from a local clone):
 
 ```bash
 git clone https://github.com/korkmazgoz-caglar/random-walk-mcmc.git
 cd random-walk-mcmc
-pip install -e ".[dev,notebooks]"
+python -m pip install -e ".[dev,notebooks]"
 ```
 
-Verify that the installation and its version are visible from the active Python environment:
+Verify that the package, version, and command-line entry point are visible from the active
+Python environment:
 
 ```bash
 python -c "import rwmcmc; print(rwmcmc.__version__)"
-which rwmcmc-run
+rwmcmc-run --help
 ```
 
 Optional extras:
@@ -130,10 +139,12 @@ cp examples/config.yaml my_run.yaml
 rwmcmc-run my_run.yaml
 ```
 
-For a pip-only installation, the repository's `examples/` directory is not created in your working directory. Download the example first, then run it:
+For a pip-only installation, the repository's `examples/` directory is not created in
+your working directory. The command below downloads only the released example
+configuration into the current directory; run it afterwards:
 
 ```bash
-curl -L https://raw.githubusercontent.com/korkmazgoz-caglar/random-walk-mcmc/main/examples/config.yaml -o my_run.yaml
+curl -L https://raw.githubusercontent.com/korkmazgoz-caglar/random-walk-mcmc/v0.2.1/examples/config.yaml -o my_run.yaml
 rwmcmc-run my_run.yaml
 ```
 
@@ -153,10 +164,10 @@ param_names: [x1, x2]   # optional labels
 ```
 
 All entries are validated before sampling starts. In particular, `n_samples` must be at
-least 2, `burn_in` must be smaller than `n_samples`, proposal scales must be finite and
-strictly positive, `seed` must be a non-negative integer or `null`, and `param_names` must
-match the target dimension. Unknown keys are rejected, so a typo such as `burnin` cannot
-silently fall back to a default.
+least 2, `burn_in` must leave at least two samples for diagnostics, proposal scales must be
+finite and strictly positive, `seed` must be a non-negative integer or `null`, and
+`param_names` must match the target dimension. Unknown keys are rejected, so a typo
+such as `burnin` cannot silently fall back to a default.
 
 Invalid configurations produce a short command-line error and exit status 2 without
 creating the output directory:
@@ -219,7 +230,7 @@ Another project can install a specific release through its dependency file using
 example:
 
 ```text
-git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.0
+git+https://github.com/korkmazgoz-caglar/random-walk-mcmc.git@v0.2.1
 ```
 
 Pinning a tag or commit prevents an environment rebuild from silently selecting a newer
@@ -227,10 +238,11 @@ revision.
 
 ## Troubleshooting
 
-- **`rwmcmc-run: command not found`:** ensure the package was installed in the active
-  environment and check `which rwmcmc-run`.
+- **`rwmcmc-run: command not found`:** reactivate the virtual environment and confirm
+  the package is installed there with `python -m pip show rwmcmc`.
 - **A notebook cannot import `rwmcmc`:** its kernel may use a different Python environment.
-  Compare `import sys; print(sys.executable)` inside the notebook with `which python`.
+  Compare `import sys; print(sys.executable)` inside the notebook with
+  `python -c "import sys; print(sys.executable)"` in the terminal.
 - **`ImportError: attempted relative import with no known parent package`:** do not execute
   files such as `src/rwmcmc/samplers.py` directly; install and import the package.
 - **A zero-variance diagnostic error:** the chain did not move. Inspect the trace and reduce
@@ -243,7 +255,7 @@ revision.
 ## Development
 
 ```bash
-pip install -e ".[dev]"
+python -m pip install -e ".[dev]"
 ruff format .           # apply the formatting
 ruff check .            # lint
 python -m pytest -v     # run the test suite
