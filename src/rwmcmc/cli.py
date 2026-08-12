@@ -215,41 +215,67 @@ def _installed_commit() -> str | None:
         return None
     if not raw:
         return None
+
     try:
-        return json.loads(raw).get("vcs_info", {}).get("commit_id")
-    except (json.JSONDecodeError, AttributeError):
+        direct_url = json.loads(raw)
+    except json.JSONDecodeError:
         return None
+
+    vcs_info = direct_url.get("vcs_info")
+    if not isinstance(vcs_info, dict):
+        return None
+
+    commit = vcs_info.get("commit_id")
+    return commit if isinstance(commit, str) and commit else None
 
 
 def _source_info() -> dict:
     """Identify the source that produced the run.
 
-    A package version does not pin a commit during development, so the revision
-    of the checkout is used when the package is imported from one. Otherwise the
-    revision pip recorded at install time is used, which covers an install from
-    a git URL. An install from a plain directory has neither, and the fields stay
-    empty rather than failing the run.
+    A VCS installation is identified first from the direct_url.json written by
+    pip. Otherwise Git information is used only when the imported package is
+    actually the src/rwmcmc directory of that checkout. This prevents a regular
+    installation inside another project's virtual environment from recording
+    the surrounding project's revision as the rwmcmc revision.
     """
     info = {"rwmcmc_version": rwmcmc.__version__, "git_commit": None, "git_dirty": None}
+
+    installed_commit = _installed_commit()
+    if installed_commit is not None:
+        info["git_commit"] = installed_commit
+        return info
+
     package_dir = Path(rwmcmc.__file__).resolve().parent
     try:
+        root = subprocess.run(
+            ["git", "-C", str(package_dir), "rev-parse", "--show-toplevel"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=True,
+        ).stdout.strip()
+        checkout_root = Path(root).resolve()
+
+        if package_dir != (checkout_root / "src" / "rwmcmc").resolve():
+            return info
+
         commit = subprocess.run(
-            ["git", "-C", str(package_dir), "rev-parse", "HEAD"],
+            ["git", "-C", str(checkout_root), "rev-parse", "HEAD"],
             capture_output=True,
             text=True,
             timeout=5,
             check=True,
         ).stdout.strip()
         status = subprocess.run(
-            ["git", "-C", str(package_dir), "status", "--porcelain"],
+            ["git", "-C", str(checkout_root), "status", "--porcelain"],
             capture_output=True,
             text=True,
             timeout=5,
             check=True,
         ).stdout.strip()
     except (OSError, subprocess.SubprocessError):
-        info["git_commit"] = _installed_commit()
         return info
+
     info["git_commit"] = commit
     info["git_dirty"] = bool(status)
     return info

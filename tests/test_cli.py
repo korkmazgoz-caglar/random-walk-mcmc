@@ -314,10 +314,11 @@ def test_the_metadata_records_the_digest_of_the_configuration_file(tmp_path, mon
     assert recorded == hashlib.sha256(config.read_bytes()).hexdigest()
 
 
-def test_a_pip_installed_revision_is_used_when_there_is_no_checkout(monkeypatch):
-    # installing from a git URL leaves no repository, but pip records the commit
-    def no_git(*args, **kwargs):
-        raise OSError("git is not installed here")
+def test_a_pip_installed_revision_is_preferred_to_a_surrounding_checkout(monkeypatch):
+    # A virtual environment can live inside an unrelated Git repository. The
+    # commit recorded by pip identifies rwmcmc; the surrounding repository does not.
+    def fail_if_git_is_called(*args, **kwargs):
+        pytest.fail("Git must not be consulted when direct_url.json records the commit")
 
     class FakeDistribution:
         def read_text(self, name):
@@ -329,7 +330,7 @@ def test_a_pip_installed_revision_is_used_when_there_is_no_checkout(monkeypatch)
                 }
             )
 
-    monkeypatch.setattr(cli.subprocess, "run", no_git)
+    monkeypatch.setattr(cli.subprocess, "run", fail_if_git_is_called)
     monkeypatch.setattr(cli.importlib.metadata, "distribution", lambda name: FakeDistribution())
 
     source = cli._source_info()
@@ -337,6 +338,58 @@ def test_a_pip_installed_revision_is_used_when_there_is_no_checkout(monkeypatch)
     assert source["rwmcmc_version"]
     assert source["git_commit"] == "0123456789abcdef"
     assert source["git_dirty"] is None
+
+
+def test_an_unrelated_parent_checkout_is_not_reported_as_rwmcmc_source(tmp_path, monkeypatch):
+    checkout_root = tmp_path / "unrelated-project"
+    package_dir = checkout_root / ".venv" / "lib" / "python" / "site-packages" / "rwmcmc"
+    package_dir.mkdir(parents=True)
+    package_file = package_dir / "__init__.py"
+    package_file.write_text("")
+
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return type("Completed", (), {"stdout": f"{checkout_root}\n"})()
+
+    monkeypatch.setattr(cli, "_installed_commit", lambda: None)
+    monkeypatch.setattr(cli.rwmcmc, "__file__", str(package_file))
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    source = cli._source_info()
+
+    assert source["git_commit"] is None
+    assert source["git_dirty"] is None
+    assert len(calls) == 1
+    assert calls[0][-2:] == ["rev-parse", "--show-toplevel"]
+
+
+def test_a_real_source_checkout_records_its_revision_and_dirty_state(tmp_path, monkeypatch):
+    checkout_root = tmp_path / "random-walk-mcmc"
+    package_dir = checkout_root / "src" / "rwmcmc"
+    package_dir.mkdir(parents=True)
+    package_file = package_dir / "__init__.py"
+    package_file.write_text("")
+
+    outputs = {
+        ("rev-parse", "--show-toplevel"): f"{checkout_root}\n",
+        ("rev-parse", "HEAD"): "fedcba9876543210\n",
+        ("status", "--porcelain"): " M src/rwmcmc/cli.py\n",
+    }
+
+    def fake_run(command, **kwargs):
+        key = tuple(command[3:])
+        return type("Completed", (), {"stdout": outputs[key]})()
+
+    monkeypatch.setattr(cli, "_installed_commit", lambda: None)
+    monkeypatch.setattr(cli.rwmcmc, "__file__", str(package_file))
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+
+    source = cli._source_info()
+
+    assert source["git_commit"] == "fedcba9876543210"
+    assert source["git_dirty"] is True
 
 
 def test_the_provenance_is_taken_before_any_output_exists(tmp_path, monkeypatch):
