@@ -31,7 +31,7 @@ import yaml
 
 import rwmcmc
 
-from .diagnostics import dashboard, summary
+from .diagnostics import corner, dashboard, summary
 from .samplers import _as_1d_float, _as_positive_int, random_walk_metropolis_hastings
 from .targets import banana_log_pdf, gaussian_1d_log_pdf
 
@@ -347,8 +347,6 @@ def main(argv: list[str] | None = None) -> None:
         fig.savefig(out / "dashboard.png", dpi=120)
 
     if config.get("save_corner", False) and samples.ndim == 2 and samples.shape[1] >= 2:
-        from .diagnostics import corner
-
         fig = corner(samples, burn_in=burn_in, param_names=config.get("param_names"))
         fig.savefig(out / "corner.png", dpi=120)
 

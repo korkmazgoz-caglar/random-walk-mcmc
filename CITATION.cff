@@ -4,7 +4,7 @@ title: "rwmcmc: lightweight Random-Walk Metropolis-Hastings sampler"
 type: software
 authors:
   - family-names: "Korkmazgöz"
-    given-names: "Çağlar"
+    given-names: "Enes Çağlar"
     affiliation: "RWTH Aachen University"
 version: 0.1.0
 date-released: 2026-07-20
