@@ -164,6 +164,7 @@ CITATION.cff       citation metadata
 
 ## References
 
+- H. Haario, E. Saksman, and J. Tamminen (1999), *Adaptive proposal distribution for random walk Metropolis algorithm*, Computational Statistics 14(3), 375–395. https://link.springer.com/article/10.1007/s001800050022
 - C. J. Geyer (1992), *Practical Markov Chain Monte Carlo*, Statistical Science 7(4). https://projecteuclid.org/journals/statistical-science/volume-7/issue-4/Practical-Markov-Chain-Monte-Carlo/10.1214/ss/1177011137.full
 - A. Gelman et al., *Bayesian Data Analysis*, 3rd ed., Ch. 11. https://sites.stat.columbia.edu/gelman/book/
 - Stan Reference Manual, *Effective Sample Size*. https://mc-stan.org/docs/2_21/reference-manual/effective-sample-size-section.html
