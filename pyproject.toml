@@ -17,14 +17,13 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=1.26",
-    "scipy>=1.11",
     "matplotlib>=3.8",
     "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
-notebooks = ["jupyter>=1.0", "ipykernel>=6.29", "seaborn>=0.13"]
-dev = ["pytest>=8.0", "ruff==0.16.*"]
+notebooks = ["jupyter>=1.0", "ipykernel>=6.29", "seaborn>=0.13", "scipy>=1.11"]
+dev = ["pytest>=8.0", "ruff==0.16.*", "scipy>=1.11"]
 
 [project.scripts]
 rwmcmc-run = "rwmcmc.cli:main"

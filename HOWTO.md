@@ -55,7 +55,7 @@ save_corner: true       # also write corner.png (pairwise joint plot, needs >= 2
 param_names: [x1, x2]   # labels used in the dashboard (optional)
 ```
 
-The documented settings are validated before the sampling loop starts: `burn_in` must be smaller than `n_samples`, `seed` must be a non-negative integer or `null`, `save_corner` requires an `x0` with at least two dimensions, and `param_names` must have one name per dimension. A file that breaks one of these rules is reported as a short command line error rather than a traceback:
+The documented settings are validated before the sampling loop starts: `burn_in` must be smaller than `n_samples`, `seed` must be a non-negative integer or `null`, `save_corner` requires an `x0` with at least two dimensions, and `param_names` must have one name per dimension. A setting the CLI does not know is refused as well, so a misspelled `burnin` cannot quietly fall back to the default. A file that breaks one of these rules is reported as a short command line error rather than a traceback:
 
 ```
 usage: rwmcmc-run [-h] config
@@ -72,17 +72,17 @@ Inside `output_dir` (default `results/`):
 - `accepted.npy` — boolean array; `True` where the proposal was accepted.
 - `dashboard.png` — four diagnostic panels per dimension (see section 6).
 - `corner.png` — pairwise joint distributions between dimensions (only written when `save_corner: true` and the target has at least 2 dimensions).
-- `run_metadata.yaml` — the complete, human-readable record of the run: the config that was used, the seed that was actually applied (`resolved_seed`), summary statistics, package versions, and a timestamp.
+- `run_metadata.yaml` — the complete, human-readable record of the run, in a small schema of its own (`schema_version: 1`): the requested configuration and the effective one with every default filled in, the seed actually used and the NumPy bit generator, the package version and the git revision it came from (when available), the Python and library versions and the platform, the summary statistics, and SHA-256 digests of `samples.npy` and `accepted.npy`.
 
 ## 5. How do I reproduce a run, including a "random" one?
 
-Every run writes its `resolved_seed` into `run_metadata.yaml`, even when the config said `seed: null`. To repeat any run exactly:
+Every run records the seed it actually used in `run_metadata.yaml`, even when the config said `seed: null`. To repeat any run exactly:
 
-1. Open `results/run_metadata.yaml` and read `resolved_seed`.
-2. Put that number into your config: `seed: <resolved_seed>`.
+1. Open `results/run_metadata.yaml` and read the seed under `random_number_generator`.
+2. Put that number into your config: `seed: <the recorded seed>`.
 3. Run `rwmcmc-run` again.
 
-The replayed chain is **bit-for-bit identical** to the original — this property is enforced by the test suite.
+Repeated with the same source revision and the same library versions that the metadata records, the replayed chain is **bit-for-bit identical** to the original, and you can check it without keeping the old files: compare the `sha256` entries under `outputs` in the two `run_metadata.yaml` files. The digest is taken from the file on disk, so it tells you the two files are byte for byte the same; it does not claim that a different machine would compute the same numbers. The test suite enforces the first.
 
 ## 6. How do I read the dashboard?
 
