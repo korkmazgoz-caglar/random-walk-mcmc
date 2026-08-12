@@ -172,9 +172,9 @@ the following files into the configured output directory:
 | File | Content |
 |---|---|
 | `samples.npy` | the chain, shape `(n_samples, d)` |
-| `accepted.npy` | boolean acceptance array |
-| `dashboard.png` | visual diagnostics |
-| `corner.png` | visual diagnostics |
+| `accepted.npy` | proposal decisions; element 0 marks the starting state, not a proposal |
+| `dashboard.png` | visual diagnostics, written when `save_dashboard: true` |
+| `corner.png` | pairwise diagnostics, written when `save_corner: true` |
 | `run_metadata.yaml` | full record of the run (see below) |
 
 
@@ -267,6 +267,7 @@ tests/             pytest suite
 tutorials/         example notebooks (01-06) and input data
 examples/          example run configuration
 .github/workflows/ continuous integration: lint and tests
+CHANGELOG.md       release history and unreleased changes
 CITATION.cff       citation metadata
 ```
 
