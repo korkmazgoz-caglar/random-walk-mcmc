@@ -63,7 +63,7 @@ from rwmcmc import random_walk_metropolis_hastings, banana_log_pdf, dashboard, s
 
 rng = np.random.default_rng(42)  # seed -> reproducible chain
 samples, accepted = random_walk_metropolis_hastings(
-    banana_log_pdf, x0=[0.0, 0.0], n_samples=8000, step_size=[1.0, 1.0], rng=rng
+    banana_log_pdf, x0=[0.0, 3.0], n_samples=8000, step_size=[4.0, 2.0], rng=rng
 )
 
 print(summary(samples, accepted, burn_in=500))
@@ -82,11 +82,11 @@ from rwmcmc import RandomWalkMetropolisHastings, banana_log_pdf
 
 sampler = RandomWalkMetropolisHastings(
     banana_log_pdf,
-    step_size=[1.0, 1.0],
+    step_size=[4.0, 2.0],
     rng=np.random.default_rng(42),
 )
 samples, accepted = sampler.sample(
-    x0=[0.0, 0.0],
+    x0=[0.0, 3.0],
     n_samples=8000,
 )
 ```
